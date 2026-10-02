@@ -1,0 +1,55 @@
+{
+    "version": 1,
+    "name": "PlayerInputs",
+    "maps": [
+        {
+            "name": "Player",
+            "id": "e9012a80-aa57-48cd-b17f-dbb483a15c81",
+            "actions": [
+                {
+                    "name": "Right Mouse Button",
+                    "type": "Button",
+                    "id": "ee91506d-1f10-4fa3-ba8f-c002dd5a9253",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "DeltaMouse",
+                    "type": "Value",
+                    "id": "e7e2bd47-89a5-4952-8d7b-2c506b1b84a7",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "c39b78e4-d4d1-4bf4-a4f4-04885c43fa0f",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Right Mouse Button",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a35adc23-1242-449b-a2d0-e3ffc65c452b",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DeltaMouse",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

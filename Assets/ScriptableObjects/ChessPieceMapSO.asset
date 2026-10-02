@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6485e1cd215440c4f8a1bd4448e02365, type: 3}
+  m_Name: ChessPieceMapSO
+  m_EditorClassIdentifier: Assembly-CSharp::ChessPieceMapSO
+  pieceMaps:
+  - pieceType: 0
+    chessPiece: {fileID: 716206161115704625, guid: 4b292d1eb2d717142a7761fa196190b7, type: 3}
+  - pieceType: 1
+    chessPiece: {fileID: 2181599518237819167, guid: 7c5921a11aff1b4498653de6f029e851, type: 3}
+  - pieceType: 2
+    chessPiece: {fileID: 4981582401236870785, guid: f9218e360bddc974681788b01da118ae, type: 3}
