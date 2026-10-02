@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Collections;
 using TMPro;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.iOS;
+using UnityEngine.Assertions.Must;
 
 [System.Serializable]
 public struct ChessGridName
@@ -26,6 +28,10 @@ public enum GameState
     PlayerScalingUp,
     PlayerScalingDown,
     Playing,
+    MoveSelecting,
+    Moving,
+    PlacingWall,
+    Hiding
 }
 
 public class GameManager : MonoBehaviour
@@ -46,9 +52,23 @@ public class GameManager : MonoBehaviour
     [SerializeField] private LayerMask blockLayer;
 
     [SerializeField] private float pieceScaleLerpTime;
+    [SerializeField] private float moveWaitTime;
+    [SerializeField] private float destinationMoveSpeed;
+
+    [SerializeField] private GameObject PlaceWallPrefab;
+    [SerializeField] private float placeWall_LerpTime;
+
+    private float placeWallElapsedTime;
+
+    private float currentwallPlaceAngle;
+    private float finalwallPlaceAngle;
+
+    private GameObject wallPlaceObj;
+
     private float pieceScaleElapsedTime;
 
     private List<string> possibleMovesList = new List<string>();
+    private List<string> takedownMovesList = new List<string>();
 
     [Header("Camera Angles")]
 
@@ -59,6 +79,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text camAngleText;
 
     private float yRotation;
+    private bool bIsRMB_Clicked;
 
     private Vector2 lastMousePosition;
     private int prevCamAngleIndex;
@@ -84,7 +105,19 @@ public class GameManager : MonoBehaviour
     private int currentPieceIndex;
     private ChessGridName currentGridName;
 
-    private GameState gameState;
+    [SerializeField] private GameState gameState;
+
+    private BlockScript prevHoverBS;
+    private BlockScript currentHoverBS;
+
+    private float[] angles_rook;
+    private float[] angles_bishop;
+
+    private Vector3[] subtractValues_rook;
+    private Vector3[] subtractValues_bishop;
+    private Vector3[] knight_values;
+
+    private string destinationGridName;
 
     void Start()
     {
@@ -123,6 +156,43 @@ public class GameManager : MonoBehaviour
         {
             camAngleParents.Add(ca_trans.parent);
         }
+
+        wallPlaceObj = Instantiate(PlaceWallPrefab, new Vector3(-10000, 10000, -10000), Quaternion.identity);
+
+        SetInitialCPValues();
+    }
+
+    private void SetInitialCPValues()
+    {
+        angles_rook = new float[] { 0, 90, 180, 270 };
+        subtractValues_rook = new Vector3[]
+        {
+            new Vector3(0f, 0f, 2f),
+            new Vector3(2f, 0f, 0f),
+            new Vector3(0f, 0f, -2f),
+            new Vector3(-2f, 0f, 0f),
+        };
+
+        angles_bishop = new float[] { 45, 135, 225, 315 };
+        subtractValues_bishop = new Vector3[]
+        {
+            new Vector3(2f, 0f, 2f),
+            new Vector3(2f, 0f, -2f),
+            new Vector3(-2f, 0f, -2f),
+            new Vector3(-2f, 0f, 2f),
+        };
+
+        knight_values = new Vector3[]
+        {
+            new Vector3(2, 0, 4),
+            new Vector3(2, 0, -4),
+            new Vector3(-2, 0, 4),
+            new Vector3(-2, 0, -4),
+            new Vector3(4, 0, 2),
+            new Vector3(-4, 0, 2),
+            new Vector3(4, 0, -2),
+            new Vector3(-4, 0, -2)
+        };
     }
 
     private void CursorSetup(bool bIsActive)
@@ -204,6 +274,9 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         HandleInputs();
+        MoveToDestination();
+        PlaceWallBlock();
+        ShootRayFromCamera();
         SetCameraAngle();
         MoveCameraToAngleLocation();
         HandleChessPieceChanging();
@@ -216,12 +289,30 @@ public class GameManager : MonoBehaviour
         {
             lastMousePosition = Mouse.current.position.ReadValue();
             CursorSetup(false);
+            bIsRMB_Clicked = true;
+            
+            if(gameState == GameState.Playing)
+            {
+                for(int i = 0; i < activeLevelData.chessBoard.transform.childCount; i++)
+                {
+                    if(IsInPossibleMovesList(activeLevelData.chessBoard.transform.GetChild(i).name))
+                    {
+                        BlockScript b_script = activeLevelData.chessBoard.transform.GetChild(i).GetComponent<BlockScript>();
+                        if(b_script != null)
+                        {
+                            b_script.SetBlockState(BlockState.Highlighted);
+                        }
+                    }
+                }
+            }
+
         }
 
         if(inputActions.Player.RightMouseButton.WasReleasedThisFrame())
         {
             Mouse.current.WarpCursorPosition(lastMousePosition);
             CursorSetup(true);
+            bIsRMB_Clicked = false;
         }
 
         if(inputActions.Player.RightMouseButton.IsPressed())
@@ -232,6 +323,171 @@ public class GameManager : MonoBehaviour
             camAngleParents[currentCamAngleIndex].transform.localEulerAngles = new Vector3(0f, yRotation, 0f);
         }
 
+        if(inputActions.Player.LeftMouseButton.WasPressedThisFrame() && !bIsRMB_Clicked && 
+            gameState == GameState.Playing)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            RaycastHit hit;
+            Physics.Raycast(ray, out hit, 1000f, blockLayer);
+            if (hit.collider != null)
+            {
+                if (IsInPossibleMovesList(hit.collider.name))
+                {
+                    gameState = GameState.MoveSelecting;
+                    destinationGridName = hit.collider.name;
+
+                    StartCoroutine(SetToMoving());
+
+                    ResetChessBlocks();
+                }
+            }
+        }
+    }
+
+    IEnumerator SetToMoving()
+    {
+        yield return new WaitForSeconds(moveWaitTime);
+        gameState = GameState.Moving;
+    }
+
+    private void MoveToDestination()
+    {
+        if (gameState != GameState.Moving) return;
+        GameObject targetBlock = RetrieveGameObjectOfName(destinationGridName);
+        Vector3 targetLocation = new Vector3(targetBlock.transform.position.x, Player.transform.position.y,
+            targetBlock.transform.position.z);
+        
+        Vector3 newLocation = Vector3.MoveTowards(Player.transform.position,
+            targetLocation, Time.deltaTime * destinationMoveSpeed);
+
+        Player.transform.position = newLocation;
+
+        float distance = Vector3.Distance(Player.transform.position, targetBlock.transform.position);
+       
+        if(distance <= 0.11f)
+        {
+            gameState = GameState.PlacingWall;
+            for(int i = 0; i < activeLevelData.chessBoard.transform.childCount; i++)
+            {
+                GameObject chessBlock = activeLevelData.chessBoard.transform.GetChild(i).gameObject;
+                if(chessBlock.gameObject.tag == "block")
+                {
+                    if (chessBlock.name.ToLower() != destinationGridName.ToLower())
+                    {
+                        chessBlock.GetComponent<BlockScript>().SetIsDecreasingY(true);
+                    }
+                }
+            }
+        }
+    }
+
+    private void PlaceWallBlock()
+    {
+        if (gameState != GameState.PlacingWall) return;
+        GameObject MainChessBlock = RetrieveGameObjectOfName(destinationGridName);
+
+        wallPlaceObj.transform.position = MainChessBlock.transform.position;
+
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
+
+        if (groundPlane.Raycast(ray, out float distance))
+        {
+            Vector3 mouseWorldPos = ray.GetPoint(distance);
+
+            Vector3 direction = mouseWorldPos - MainChessBlock.transform.position;
+
+            float angle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+
+            if(angle >= -45f && angle < 45f && finalwallPlaceAngle != 180f)
+            {
+                currentwallPlaceAngle = wallPlaceObj.transform.eulerAngles.y;
+                finalwallPlaceAngle = 180f;
+                placeWallElapsedTime = 0f;
+            } else if(angle >= 45f && angle < 135f && finalwallPlaceAngle != 270f)
+            {
+                currentwallPlaceAngle = wallPlaceObj.transform.eulerAngles.y;
+                finalwallPlaceAngle = 270f;
+                placeWallElapsedTime = 0f;
+            } else if(angle >= -135f && angle < -45f && finalwallPlaceAngle != 90f)
+            {
+                currentwallPlaceAngle = wallPlaceObj.transform.eulerAngles.y;
+                finalwallPlaceAngle = 90f;
+                placeWallElapsedTime = 0f;
+            } else if (finalwallPlaceAngle != 0 && (angle >= 135f || angle < -135f))
+            {
+                currentwallPlaceAngle = wallPlaceObj.transform.eulerAngles.y;
+                finalwallPlaceAngle = 0f;
+                placeWallElapsedTime = 0f;
+            }
+
+            float t = placeWallElapsedTime / placeWall_LerpTime;
+            float newAngle = Mathf.LerpAngle(currentwallPlaceAngle, finalwallPlaceAngle, t);
+
+            wallPlaceObj.transform.eulerAngles = new Vector3(0f, newAngle, 0f);
+
+            placeWallElapsedTime += Time.deltaTime;
+        }
+    }
+
+    private void ShootRayFromCamera()
+    {
+        if (gameState != GameState.Playing || bIsRMB_Clicked) return;
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        RaycastHit hit;
+        Physics.Raycast(ray, out hit, 1000f, blockLayer);
+        if(hit.collider != null)
+        {
+            if(prevHoverBS && prevHoverBS != currentHoverBS)
+            {
+                prevHoverBS.SetBlockState(BlockState.Highlighted);
+                prevHoverBS = null;
+            }
+
+            BlockScript b_script = hit.collider.GetComponent<BlockScript>();
+            if(b_script != null && currentHoverBS != b_script)
+            {
+                if(IsInPossibleMovesList(hit.collider.name))
+                {
+                    b_script.SetBlockState(BlockState.Selected);
+                    prevHoverBS = currentHoverBS;
+                    currentHoverBS = b_script;
+                } else
+                {
+                    if(currentHoverBS && currentHoverBS.GetBlockState() != BlockState.Highlighted)
+                    {
+                        currentHoverBS.SetBlockState(BlockState.Highlighted);
+                        currentHoverBS = null;
+                    }
+                }
+            }
+        }
+    }
+
+    private bool IsInPossibleMovesList(string gridName)
+    {
+        for(int i = 0; i < possibleMovesList.Count; i++)
+        {
+            if (possibleMovesList[i].ToLower() == gridName.ToLower())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsInTakeDownMovesList(string gridName)
+    {
+        for (int i = 0; i < takedownMovesList.Count; i++)
+        {
+            if (takedownMovesList[i].ToLower() == gridName.ToLower())
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void SetCameraAngle()
@@ -292,6 +548,8 @@ public class GameManager : MonoBehaviour
         if (pieceChangeElapsedTime >= activeLevelData.pieceChangeTimeInterval)
         {
             gameState = GameState.PlayerScalingDown;
+            currentHoverBS = null;
+            prevHoverBS = null;
 
             ResetChessBlocks();
 
@@ -301,7 +559,7 @@ public class GameManager : MonoBehaviour
 
     void ScaleChessPiece()
     {
-        if (gameState == GameState.Playing) return;
+        if (gameState != GameState.PlayerScalingUp  && gameState != GameState.PlayerScalingDown) return;
         float t = pieceScaleElapsedTime / pieceScaleLerpTime;
         PieceMap pieceMap = RetrieveCurrentPieceMapOfType(currentPieceIndex);
 
@@ -367,6 +625,21 @@ public class GameManager : MonoBehaviour
         return obj;
     }
 
+    private GameObject RetrieveGameObjectOfName(string name)
+    {
+        GameObject obj = null;
+        for(int i = 0; i < activeLevelData.chessBoard.transform.childCount; i++)
+        {
+            if(activeLevelData.chessBoard.transform.GetChild(i).name.ToLower() == name.ToLower())
+            {
+                obj = activeLevelData.chessBoard.transform.GetChild(i).gameObject;
+                break;
+            }
+        }
+
+        return obj;
+    }
+
     private PieceMap RetrieveCurrentPieceMapOfType(int pieceIndex)
     {
         ChessPieceType type = activeLevelData.typeOrder[pieceIndex];
@@ -386,38 +659,8 @@ public class GameManager : MonoBehaviour
 
     private void FindPossibleMoves()
     {
-        List<string> moveGridNames = new List<string>();
-
-        float[] angles_rook = { 0, 90, 180, 270 };
-        Vector3[] subtractValues_rook =
-        {
-            new Vector3(0f, 0f, 2f),
-            new Vector3(2f, 0f, 0f),
-            new Vector3(0f, 0f, -2f),
-            new Vector3(-2f, 0f, 0f),
-        };
-
-        float[] angles_bishop = { 45, 135, 225, 315 };
-        Vector3[] subtractValues_bishop =
-        {
-            new Vector3(2f, 0f, 2f),
-            new Vector3(2f, 0f, -2f),
-            new Vector3(-2f, 0f, -2f),
-            new Vector3(-2f, 0f, 2f),
-        };
-
-        Vector3[] knight_values =
-        {
-            new Vector3(2, 0, 4),
-            new Vector3(2, 0, -4),
-            new Vector3(-2, 0, 4),
-            new Vector3(-2, 0, -4),
-            new Vector3(4, 0, 2),
-            new Vector3(-4, 0, 2),
-            new Vector3(4, 0, -2),
-            new Vector3(-4, 0, -2)
-        };
-
+        possibleMovesList.Clear();
+        takedownMovesList.Clear();
         ResetChessBlocks();
         switch (activeLevelData.typeOrder[currentPieceIndex])
         {
@@ -451,6 +694,49 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void FindPathToDestination()
+    {
+        GameObject currentChessPiece = RetrieveGameObjectOfType(currentPieceIndex);
+        for (int i = 0; i < 4; i++)
+        {
+            List<string> pathOrder = new List<string>();
+            Vector3 startPos = currentChessPiece.transform.position + new Vector3(0f, 3f, 0f);
+
+            bool bFlag = false;
+            for (int j = 0; j < 8; j++)
+            {
+                Vector3 v_startPos = startPos + subtractValues_bishop[i] * j;
+
+                RaycastHit hit;
+                bool bSuccess = Physics.Raycast(v_startPos, Vector3.down, out hit, 5f, blockLayer);
+                if (bSuccess)
+                {
+                    if(hit.collider != null)
+                    {
+                        if(hit.collider.name.ToLower() != currentChessPiece.name.ToLower())
+                        {
+                            pathOrder.Add(hit.collider.name);
+                            if(hit.collider.name.ToLower() == destinationGridName.ToLower())
+                            {
+                                bFlag = true;
+                                break;
+                            }
+                        }
+                    }                   
+                }
+            }
+
+            if(bFlag)
+            {
+                for(int j = 0; j < pathOrder.Count;  j++)
+                {
+                    print(pathOrder[j]);
+                }
+                break;
+            }
+        }
+    }
+
     private void KnightMoveRefactor(Vector3[] knight_values)
     {
         GameObject currentChessPiece = RetrieveGameObjectOfType(currentPieceIndex);
@@ -480,18 +766,12 @@ public class GameManager : MonoBehaviour
 
             Vector3 endPos = startPos + (forwardVector * 16);
 
-            //Debug.DrawLine(startPos, endPos, Color.red, 100f);
-
             for (int j = 0; j < 8; j++)
             {
                 Vector3 v_startPos = startPos + subtractValues[i] * j;
-                Vector3 v_endPos = v_startPos + new Vector3(0f, -4f, 0f);
-                Vector3 direction = (v_endPos - v_startPos).normalized;
-
-                //Debug.DrawLine(v_startPos, v_endPos, Color.red, 100f);
 
                 RaycastHit hit;
-                bool bSuccess = Physics.Raycast(v_startPos, direction, out hit, 5f);
+                bool bSuccess = Physics.Raycast(v_startPos, Vector3.down, out hit, 5f);
                 if (bSuccess)
                 {
                     if (BlockAndEnemyDetection(v_startPos, hit))
@@ -505,6 +785,7 @@ public class GameManager : MonoBehaviour
 
     private bool BlockAndEnemyDetection(Vector3 v_startPos, RaycastHit hit)
     {
+        string currentgridName = GetStringFromChessGridName(currentGridName);
         if (hit.collider.gameObject.tag == "enemy")
         {
             RaycastHit blockHit;
@@ -513,21 +794,19 @@ public class GameManager : MonoBehaviour
             {
                 if (blockHit.collider != null)
                 {
-                    //blockHit.collider.gameObject.GetComponent<Renderer>().material = ThreatMaterial;
-                    //blockHit.collider.transform.GetChild(0).gameObject.SetActive(true);
                     blockHit.collider.GetComponent<BlockScript>().SetBlockState(BlockState.Threat);
+                    takedownMovesList.Add(blockHit.collider.name);
                 }
             }
             return true;
         }
         else if (hit.collider.gameObject.tag == "block")
         {
-            string currentgridName = GetStringFromChessGridName(currentGridName);
+            
             if(hit.collider.gameObject.name.ToLower() != currentgridName.ToLower())
             {
-                //hit.collider.gameObject.GetComponent<Renderer>().material = highlightedMaterial;
-                //hit.collider.transform.GetChild(0).gameObject.SetActive(true);
                 hit.collider.GetComponent<BlockScript>().SetBlockState(BlockState.Highlighted);
+                possibleMovesList.Add(hit.collider.gameObject.name);
             }
         }
 
