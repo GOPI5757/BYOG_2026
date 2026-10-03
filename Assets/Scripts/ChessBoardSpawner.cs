@@ -1,13 +1,40 @@
 using UnityEngine;
+using System.Collections.Generic;
+
+[System.Serializable]
+struct PawnGridMap
+{
+    public GameObject Pawn;
+    public ChessGridName PawnGridName;
+    public Vector3 velocity;
+
+    public PawnGridMap(GameObject obj, ChessGridName gridName, Vector3 vel)
+    {
+        Pawn = obj;
+        PawnGridName = gridName;
+        velocity = vel;
+    }
+}
 
 public class ChessBoardSpawner : MonoBehaviour
 {
     [SerializeField] private GameObject BlockPrefab;
-    [SerializeField] private Vector2 startPos;
+    [SerializeField] private GameObject OuterFramePrefab;
+    [SerializeField] private GameObject PawnPrefab;
 
+    [SerializeField] private Vector2 startPos;
+    [SerializeField] private PawnGridMap[] PawnGridMap;
+
+    [SerializeField] private float pawnMoveSpeed;
+    
+    private PawnGridMap[] prevPawnGridMap;
     [SerializeField] private float decreaseYOffset_A, decreaseYOffset_B;
 
     [SerializeField] private Material BlockMat_A, BlockMat_B;
+
+    private List<GameObject> pawns = new List<GameObject>();
+    
+    private GameObject outerFrameObj;
 
     private bool bIsBlockMatA = true;
 
@@ -15,11 +42,19 @@ public class ChessBoardSpawner : MonoBehaviour
 
     void Start()
     {
-        for(int i = 0; i < 8; i++)
+        outerFrameObj = Instantiate(OuterFramePrefab, transform);
+
+        SpawnBlocks();
+        SpawnPawns();
+    }
+
+    private void SpawnBlocks()
+    {
+        for (int i = 0; i < 8; i++)
         {
-            for(int j = 0; j < 8; j++)
+            for (int j = 0; j < 8; j++)
             {
-                Vector3 spawnPos = transform.position + 
+                Vector3 spawnPos = transform.position +
                     new Vector3(startPos.x + (j * 2), 1f, startPos.y + (i * 2));
 
                 GameObject blockObj = Instantiate(BlockPrefab, transform);
@@ -27,7 +62,7 @@ public class ChessBoardSpawner : MonoBehaviour
                 blockObj.GetComponent<Renderer>().material = bIsBlockMatA ? BlockMat_A : BlockMat_B;
                 blockObj.transform.GetComponent<BlockScript>().initialMaterial = bIsBlockMatA ? BlockMat_A : BlockMat_B;
                 blockObj.transform.GetComponent<BlockScript>().SetDecreaseOffset(bIsBlockMatA ? decreaseYOffset_A : decreaseYOffset_B);
-                blockObj.transform.name = alphabets[j] + (i+1).ToString();
+                blockObj.transform.name = alphabets[j] + (i + 1).ToString();
                 bIsBlockMatA = !bIsBlockMatA;
             }
 
@@ -35,8 +70,116 @@ public class ChessBoardSpawner : MonoBehaviour
         }
     }
 
+    private void SpawnPawns()
+    {
+        for(int i = 0; i < PawnGridMap.Length; i++)
+        {
+            string name = PawnGridMap[i].PawnGridName.alph_type.ToString() + 
+                PawnGridMap[i].PawnGridName.number.ToString();
+
+            GameObject chessBlock = RetrieveGameObjectOfName(name);
+            if(chessBlock != null)
+            {
+                GameObject PawnSpawnObj = Instantiate(PawnPrefab, transform);
+                PawnSpawnObj.transform.position = chessBlock.transform.position;
+
+                PawnGridMap map = new PawnGridMap(PawnSpawnObj, PawnGridMap[i].PawnGridName, PawnGridMap[i].velocity);
+                PawnGridMap[i] = map;
+
+                SetBlockOccupied(name, PawnSpawnObj);
+
+                PawnSpawnObj.transform.parent = chessBlock.transform;
+            }
+        }
+
+        prevPawnGridMap = PawnGridMap;
+    }
+
+    private GameObject RetrieveGameObjectOfName(string name)
+    {
+        GameObject obj = null;
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            if (transform.GetChild(i).name.ToLower() == name.ToLower())
+            {
+                obj = transform.GetChild(i).gameObject;
+                break;
+            }
+        }
+
+        return obj;
+    }
+
     void Update()
     {
-        
+        UpdatePawnLocations();
+    }
+
+    public void MovePawnsForward()
+    {
+        for(int i = 0; i < PawnGridMap.Length; i++)
+        {
+            string nextGridName = PawnGridMap[i].PawnGridName.alph_type.ToString() + 
+                (PawnGridMap[i].PawnGridName.number - 1).ToString();
+
+            GameObject nextBlock = RetrieveGameObjectOfName(nextGridName);
+            if (nextBlock)
+            {
+                BlockScript b_script = nextBlock.GetComponent<BlockScript>();
+                if(b_script != null)
+                {
+                    if(!b_script.IsOccupiedObj())
+                    {
+                        string name = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
+                        SetBlockOccupied(name, null);
+
+                        PawnGridMap[i].PawnGridName = new ChessGridName(PawnGridMap[i].PawnGridName.alph_type,
+                            PawnGridMap[i].PawnGridName.number - 1);
+
+                        string name_1 = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
+                        SetBlockOccupied(name_1, PawnGridMap[i].Pawn);
+
+                        PawnGridMap[i].Pawn.transform.parent = nextBlock.transform;
+                    }
+                }
+            }
+        }
+    }
+
+    private void UpdatePawnLocations()
+    {
+        for(int i = 0; i < PawnGridMap.Length; i++)
+        {
+            string name = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
+            GameObject nextBlock = RetrieveGameObjectOfName(name);
+
+            if(nextBlock != null)
+            {
+                Vector3 newLocation = Vector3.SmoothDamp(PawnGridMap[i].Pawn.transform.position,
+                    nextBlock.transform.position, ref PawnGridMap[i].velocity, pawnMoveSpeed);
+
+                PawnGridMap[i].Pawn.transform.position = newLocation;
+            }
+        }
+    }
+
+    private void SetBlockOccupied(string name, GameObject obj)
+    {
+        GameObject chessBlock = RetrieveGameObjectOfName(name);
+        if (chessBlock)
+        {
+            BlockScript blockScript = chessBlock.GetComponent<BlockScript>();
+            if (blockScript != null)
+            {
+                blockScript.SetOccupiedObj(obj);
+            }
+        }
+    }
+
+    public GameObject GetOuterFrameObject() { return outerFrameObj; }
+
+    private string GetStringFromChessGridName(ChessGridName gridName)
+    {
+        return (gridName.alph_type.ToString() + gridName.number.ToString());
     }
 }

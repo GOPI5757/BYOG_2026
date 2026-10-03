@@ -19,6 +19,8 @@ public class BlockScript : MonoBehaviour
     [Header("Decrease Height")]
     [SerializeField] private float decreaseYOffset;
     [SerializeField] private float decreaseLerpTime;
+
+    [SerializeField] private GameObject occupiedObj;
     
     private float decreaseElapsedTime;
     private Vector3 initialPosition;
@@ -118,4 +120,11 @@ public class BlockScript : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         transform.GetChild(0).gameObject.SetActive(false);
     }
+
+    public void SetOccupiedObj(GameObject obj)
+    {
+        occupiedObj = obj;
+    }
+
+    public bool IsOccupiedObj() { return occupiedObj != null; }
 }

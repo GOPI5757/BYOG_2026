@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class HandSmasher : MonoBehaviour
@@ -10,11 +11,16 @@ public class HandSmasher : MonoBehaviour
     [SerializeField] private float handSmashLerpTime;
     [SerializeField] private float handRodMaxScale;
 
+    [SerializeField] private bool bCanSmashHand;
+    [SerializeField] private bool bCanIndicateNextAttack;
+    [SerializeField] private float indicateAttackDelay;
+
+    [SerializeField] private Material hand_normalMaterial, hand_indicateMaterial;
+
     private float handRodCurrentScale;
     private float handRodInitialScale;
     private float handSmashElapsedTime;
 
-    [SerializeField] private bool bCanSmashHand;
 
     void Start()
     {
@@ -37,5 +43,19 @@ public class HandSmasher : MonoBehaviour
 
         handRod.transform.localScale = new Vector3(newLocalScale, 1f, 1f);
         handSmashElapsedTime += Time.deltaTime;
+    }
+
+    public void SetCanIndicateNextAttack(bool value)
+    {
+        bCanIndicateNextAttack = value;
+        StartCoroutine(SetHandMat());
+    }
+
+    IEnumerator SetHandMat()
+    {
+        yield return new WaitForSeconds(bCanIndicateNextAttack ? indicateAttackDelay : 
+            1 - indicateAttackDelay);
+        HandTransform.GetComponent<Renderer>().material = bCanIndicateNextAttack ? 
+            hand_indicateMaterial : hand_normalMaterial;
     }
 }
