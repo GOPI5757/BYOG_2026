@@ -10,6 +10,7 @@ public class PawnScript : MonoBehaviour
     [SerializeField] private float destroyTime;
 
     public ChessBoardSpawner cb_spawner;
+    private Vector3 hitDirection;
 
     private Rigidbody pawnRb;
     
@@ -31,12 +32,12 @@ public class PawnScript : MonoBehaviour
             }
             pawnRb.useGravity = true;
             pawnRb.constraints = RigidbodyConstraints.None;
-            Knockback(new Vector3(0f, 0f, 1f));
+            Knockback();
             bCanKnockback = false;
         }
     }
 
-    public void Knockback(Vector3 hitDirection)
+    public void Knockback()
     {
         hitDirection.y = -0.5f;
         hitDirection.Normalize();
@@ -48,9 +49,10 @@ public class PawnScript : MonoBehaviour
         pawnRb.AddForce(force, ForceMode.Impulse);
     }
 
-    public void SetCanKnockback()
+    public void SetCanKnockback(Vector3 directionHit)
     {
         bCanKnockback = true;
+        hitDirection = directionHit;
         Destroy(gameObject, destroyTime);
     }
 }

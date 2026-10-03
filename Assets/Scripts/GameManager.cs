@@ -42,7 +42,9 @@ public enum GameState
     BlocksBackToPosition,
     PawnMoveWait,
     PawnMoving,
-    PrepareNextRound
+    PrepareNextRound,
+    LevelClose,
+    TransitioningToNextLevel
 }
 
 public class GameManager : MonoBehaviour
@@ -70,6 +72,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float gameStartDelay;
     [SerializeField] private float pawnMoveDelay;
     [SerializeField] private float prepareNextRoundDelay;
+    [SerializeField] private float levelCloseDelay;
 
     [SerializeField] private GameObject PlaceWallPrefab;
     [SerializeField] private float placeWall_LerpTime;
@@ -370,6 +373,7 @@ public class GameManager : MonoBehaviour
         MoveCameraToAngleLocation();
         //HandleChessPieceChanging();
         ScaleChessPiece();
+        RemoveWallAfterMove();
     }
 
     void HandleInputs()
@@ -442,6 +446,7 @@ public class GameManager : MonoBehaviour
         if(inputActions.Player.LeftMouseButton.WasPressedThisFrame() && gameState == GameState.PlacingWall)
         {
             SetGameState(GameState.Hiding);
+            placeWallElapsedTime = 0f;
             activeLevelData.chessBoard.GetComponent<ChessBoardSpawner>().
                 GetOuterFrameObject().GetComponent<OuterFrame>().SmashHands(activeSmashOrder[currentSmashOrderIndex]);
             
@@ -503,28 +508,35 @@ public class GameManager : MonoBehaviour
        
         if(distance <= 0.11f)
         {
-            SetGameState(GameState.PlacingWall);
-
-            alphabetType type;
-            System.Enum.TryParse(destinationGridName[0].ToString(), out type);
-
-            SetBlockOccupied(GetStringFromChessGridName(currentGridName), false);
-            SetBlockOccupied(destinationGridName, true);
-            currentGridName = new ChessGridName(type, int.Parse(destinationGridName[1].ToString()));
-
-            wallPlaceObj.GetComponent<Renderer>().material = placeWallMaterial_conform;
-            
-            for (int i = 0; i < activeLevelData.chessBoard.transform.childCount; i++)
+            if(activeLevelData.chessBoard.GetComponent<ChessBoardSpawner>().IsKingDefeated())
             {
-                GameObject chessBlock = activeLevelData.chessBoard.transform.GetChild(i).gameObject;
-                if(chessBlock.gameObject.tag == "block")
+                SetGameState(GameState.LevelClose);
+            } 
+            else
+            {
+                SetGameState(GameState.PlacingWall);
+                alphabetType type;
+                System.Enum.TryParse(destinationGridName[0].ToString(), out type);
+
+                SetBlockOccupied(GetStringFromChessGridName(currentGridName), false);
+                SetBlockOccupied(destinationGridName, true);
+                currentGridName = new ChessGridName(type, int.Parse(destinationGridName[1].ToString()));
+
+                wallPlaceObj.GetComponent<Renderer>().material = placeWallMaterial_conform;
+            
+                for (int i = 0; i < activeLevelData.chessBoard.transform.childCount; i++)
                 {
-                    if (chessBlock.name.ToLower() != destinationGridName.ToLower())
+                    GameObject chessBlock = activeLevelData.chessBoard.transform.GetChild(i).gameObject;
+                    if(chessBlock.gameObject.tag == "block")
                     {
-                        chessBlock.GetComponent<BlockScript>().SetIsDecreasingY(true);
+                        if (chessBlock.name.ToLower() != destinationGridName.ToLower())
+                        {
+                            chessBlock.GetComponent<BlockScript>().SetIsDecreasingY(true);
+                        }
                     }
                 }
             }
+
         }
     }
 
@@ -563,12 +575,22 @@ public class GameManager : MonoBehaviour
 
             float t = placeWallElapsedTime / placeWall_LerpTime;
             t = Mathf.SmoothStep(0f, 1f, t);
-            float newAngle = Mathf.LerpAngle(currentwallPlaceAngle, finalwallPlaceAngle, t);
 
+            float newAngle = Mathf.LerpAngle(currentwallPlaceAngle, finalwallPlaceAngle, t);
             wallPlaceObj.transform.eulerAngles = new Vector3(0f, newAngle, 0f);
 
             placeWallElapsedTime += Time.deltaTime;
         }
+    }
+
+    private void RemoveWallAfterMove()
+    {
+        if (gameState != GameState.Moving) return;
+        Vector3 newPos = Vector3.MoveTowards(wallPlaceObj.transform.position, 
+            new Vector3(wallPlaceObj.transform.position.x, 100f, wallPlaceObj.transform.position.z),
+            Time.deltaTime * placeWallConformSpeed);
+
+        wallPlaceObj.transform.position = newPos;
     }
 
     private void DetermineFinalWallPlaceAngle(float angle)
@@ -648,7 +670,11 @@ public class GameManager : MonoBehaviour
         } else if (gameState == GameState.ChoosingStrategy)
         {
             MainCamera.transform.parent = StrategyCamera;
-        } else
+        } else if(gameState == GameState.LevelClose)
+        {
+            MainCamera.transform.parent = TotalcamAngles[1];
+        }
+        else
         {
             MainCamera.transform.parent = TotalcamAngles[currentCamAngleIndex];
             prevCamAngleIndex = currentCamAngleIndex;
@@ -923,7 +949,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < 4; i++)
         {
             if (checkExistenceInArray(finalWallBlockArray, angles[i])) continue;
-            Vector3 startPos = currentChessPiece.transform.position + new Vector3(0f, 3f, 0f);
+            Vector3 startPos = currentChessPiece.transform.position + new Vector3(0f, 6f, 0f);
 
             Vector3 myAngles = new Vector3(0f, angles[i], 0f);
             Vector3 forwardVector = Quaternion.Euler(myAngles) * Vector3.forward;
@@ -939,7 +965,7 @@ public class GameManager : MonoBehaviour
                 Vector3 v_startPos = startPos + subtractValues[i] * j;
 
                 RaycastHit hit;
-                bool bSuccess = Physics.Raycast(v_startPos, Vector3.down, out hit, 5f);
+                bool bSuccess = Physics.Raycast(v_startPos, Vector3.down, out hit, 10f);
                 if (bSuccess)
                 {
                     if (BlockAndEnemyDetection(v_startPos, hit))
@@ -957,7 +983,7 @@ public class GameManager : MonoBehaviour
         if (hit.collider.gameObject.tag == "enemy")
         {
             RaycastHit blockHit;
-            bool bBlockSuccess = Physics.Raycast(v_startPos, Vector3.down, out blockHit, 5f, blockLayer);
+            bool bBlockSuccess = Physics.Raycast(v_startPos, Vector3.down, out blockHit, 10f, blockLayer);
             if (bBlockSuccess)
             {
                 if (blockHit.collider != null)
@@ -986,8 +1012,31 @@ public class GameManager : MonoBehaviour
         return (gridName.alph_type.ToString() + gridName.number.ToString());
     }
 
+    IEnumerator CloseLevel()
+    {
+        yield return new WaitForSeconds(levelCloseDelay);
+        GameObject chessObject = activeLevelData.chessBoard;
+        if (chessObject)
+        {
+            ChessBoardSpawner cb_spawner = chessObject.GetComponent<ChessBoardSpawner>();
+            if (cb_spawner)
+            {
+                OuterFrame outerFrame = cb_spawner.GetOuterFrameObject().GetComponent<OuterFrame>();
+                if (outerFrame)
+                {
+                    outerFrame.PrepareSmashSet(activeSmashOrder[currentSmashOrderIndex], false);
+                }
+            }
+        }
+    }
+
     public void SetGameState(GameState state) { 
         gameState = state; 
+
+        if(gameState == GameState.LevelClose)
+        {
+            StartCoroutine(CloseLevel());
+        }
 
         if(gameState == GameState.BlocksBackToPosition)
         {

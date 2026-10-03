@@ -23,16 +23,21 @@ public class ChessBoardSpawner : MonoBehaviour
     [SerializeField] private GameObject BlockPrefab;
     [SerializeField] private GameObject OuterFramePrefab;
     [SerializeField] private GameObject PawnPrefab;
+    [SerializeField] private GameObject KingPrefab;
 
     [SerializeField] private Vector2 startPos;
     [SerializeField] private PawnGridMap[] PawnGridMap;
 
+    [SerializeField] private PawnGridMap KingGridMap;
+
     [SerializeField] private float pawnMoveSpeed;
     
-    private PawnGridMap[] prevPawnGridMap;
+    private PawnGridMap[] initialPawnGridMap;
     [SerializeField] private float decreaseYOffset_A, decreaseYOffset_B;
 
     [SerializeField] private Material BlockMat_A, BlockMat_B;
+
+    private int currentPawnMoveOrderIndex;
 
     private List<GameObject> pawns = new List<GameObject>();
     
@@ -74,29 +79,52 @@ public class ChessBoardSpawner : MonoBehaviour
 
     private void SpawnPawns()
     {
-        for(int i = 0; i < PawnGridMap.Length; i++)
+        string kingGridname = KingGridMap.PawnGridName.alph_type.ToString() +
+                KingGridMap.PawnGridName.number.ToString();
+
+        PawnSpawnRefactor(kingGridname, KingPrefab, ref KingGridMap);
+
+        for (int i = 0; i < PawnGridMap.Length; i++)
         {
             string name = PawnGridMap[i].PawnGridName.alph_type.ToString() + 
                 PawnGridMap[i].PawnGridName.number.ToString();
 
-            GameObject chessBlock = RetrieveGameObjectOfName(name);
-            if(chessBlock != null)
-            {
-                GameObject PawnSpawnObj = Instantiate(PawnPrefab, transform);
-                PawnSpawnObj.transform.position = chessBlock.transform.position;
-                PawnSpawnObj.GetComponent<PawnScript>().cb_spawner = this;
+            PawnSpawnRefactor(name, PawnPrefab, ref PawnGridMap[i]);
+            //GameObject chessBlock = RetrieveGameObjectOfName(name);
+            //if(chessBlock != null)
+            //{
+            //    GameObject PawnSpawnObj = Instantiate(PawnPrefab, transform);
+            //    PawnSpawnObj.transform.position = chessBlock.transform.position;
+            //    PawnSpawnObj.GetComponent<PawnScript>().cb_spawner = this;
 
-                PawnGridMap map = new PawnGridMap(PawnSpawnObj, PawnGridMap[i].PawnGridName, 
-                    PawnGridMap[i].velocity, false);
-                PawnGridMap[i] = map;
+            //    PawnGridMap map = new PawnGridMap(PawnSpawnObj, PawnGridMap[i].PawnGridName, 
+            //        PawnGridMap[i].velocity, false);
+            //    PawnGridMap[i] = map;
 
-                SetBlockOccupied(name, PawnSpawnObj);
+            //    SetBlockOccupied(name, PawnSpawnObj);
 
-                PawnSpawnObj.transform.parent = chessBlock.transform;
-            }
+            //    PawnSpawnObj.transform.parent = chessBlock.transform;
+            //}
         }
+    }
 
-        prevPawnGridMap = PawnGridMap;
+    private void PawnSpawnRefactor(string name, GameObject prefab, ref PawnGridMap gridMap)
+    {
+        GameObject chessBlock = RetrieveGameObjectOfName(name);
+        if (chessBlock != null)
+        {
+            GameObject PawnSpawnObj = Instantiate(prefab, transform);
+            PawnSpawnObj.transform.position = chessBlock.transform.position;
+            PawnSpawnObj.GetComponent<PawnScript>().cb_spawner = this;
+
+            PawnGridMap map = new PawnGridMap(PawnSpawnObj, gridMap.PawnGridName,
+                gridMap.velocity, false);
+            gridMap = map;
+
+            SetBlockOccupied(name, PawnSpawnObj);
+
+            PawnSpawnObj.transform.parent = chessBlock.transform;
+        }
     }
 
     public void UpdateHasHitToPawn(GameObject pawn)
@@ -133,52 +161,131 @@ public class ChessBoardSpawner : MonoBehaviour
 
     public void MovePawnsForward()
     {
-        for(int i = 0; i < PawnGridMap.Length; i++)
+        if(!IsAllPawnsDefeated())
         {
-            string nextGridName = PawnGridMap[i].PawnGridName.alph_type.ToString() + 
-                (PawnGridMap[i].PawnGridName.number - 1).ToString();
+            FindNextPawn();
+
+            string nextGridName = PawnGridMap[currentPawnMoveOrderIndex].PawnGridName.alph_type.ToString() +
+                (PawnGridMap[currentPawnMoveOrderIndex].PawnGridName.number - 1).ToString();
 
             GameObject nextBlock = RetrieveGameObjectOfName(nextGridName);
             if (nextBlock)
             {
                 BlockScript b_script = nextBlock.GetComponent<BlockScript>();
-                if(b_script != null)
+                if (b_script != null)
                 {
-                    if(!b_script.IsOccupiedObj())
+                    if (!b_script.IsOccupiedObj())
                     {
-                        string name = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
+                        string name = GetStringFromChessGridName(
+                            PawnGridMap[currentPawnMoveOrderIndex].PawnGridName);
                         SetBlockOccupied(name, null);
 
-                        PawnGridMap[i].PawnGridName = new ChessGridName(PawnGridMap[i].PawnGridName.alph_type,
-                            PawnGridMap[i].PawnGridName.number - 1);
+                        PawnGridMap[currentPawnMoveOrderIndex].PawnGridName = new ChessGridName(
+                            PawnGridMap[currentPawnMoveOrderIndex].PawnGridName.alph_type,
+                            PawnGridMap[currentPawnMoveOrderIndex].PawnGridName.number - 1);
 
-                        string name_1 = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
-                        SetBlockOccupied(name_1, PawnGridMap[i].Pawn);
+                        string name_1 = GetStringFromChessGridName(
+                            PawnGridMap[currentPawnMoveOrderIndex].PawnGridName);
+                        SetBlockOccupied(name_1, PawnGridMap[currentPawnMoveOrderIndex].Pawn);
 
-                        PawnGridMap[i].Pawn.transform.parent = nextBlock.transform;
+                        PawnGridMap[currentPawnMoveOrderIndex].Pawn.transform.parent = nextBlock.transform;
                     }
                 }
+            }
+        }
+
+        //for(int i = 0; i < PawnGridMap.Length; i++)
+        //{
+        //    if (PawnGridMap[i].bHasHit) continue;
+        //    string nextGridName = PawnGridMap[i].PawnGridName.alph_type.ToString() + 
+        //        (PawnGridMap[i].PawnGridName.number - 1).ToString();
+
+        //    GameObject nextBlock = RetrieveGameObjectOfName(nextGridName);
+        //    if (nextBlock)
+        //    {
+        //        BlockScript b_script = nextBlock.GetComponent<BlockScript>();
+        //        if(b_script != null)
+        //        {
+        //            if(!b_script.IsOccupiedObj())
+        //            {
+        //                string name = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
+        //                SetBlockOccupied(name, null);
+
+        //                PawnGridMap[i].PawnGridName = new ChessGridName(PawnGridMap[i].PawnGridName.alph_type,
+        //                    PawnGridMap[i].PawnGridName.number - 1);
+
+        //                string name_1 = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
+        //                SetBlockOccupied(name_1, PawnGridMap[i].Pawn);
+
+        //                PawnGridMap[i].Pawn.transform.parent = nextBlock.transform;
+        //            }
+        //        }
+        //    }
+        //}
+    }
+
+    public bool IsKingDefeated()
+    {
+        return KingGridMap.bHasHit;
+    }
+
+    private bool IsAllPawnsDefeated()
+    {
+        for(int i = 0; i < PawnGridMap.Length; i++)
+        {
+            if (!PawnGridMap[i].bHasHit) return false;
+        }
+
+        return true;
+    }
+
+    private void FindNextPawn()
+    {
+        for(int i = 0; i < PawnGridMap.Length - 1; i++)
+        {
+            if(++currentPawnMoveOrderIndex >= PawnGridMap.Length)
+            {
+                currentPawnMoveOrderIndex = 0;
+            }
+
+            if (!PawnGridMap[currentPawnMoveOrderIndex].bHasHit)
+            {
+                break;
             }
         }
     }
 
     private void UpdatePawnLocations()
     {
-        for(int i = 0; i < PawnGridMap.Length; i++)
+        if (PawnGridMap[currentPawnMoveOrderIndex].Pawn == null) return;
+        string name = GetStringFromChessGridName(PawnGridMap[currentPawnMoveOrderIndex].PawnGridName);
+        GameObject nextBlock = RetrieveGameObjectOfName(name);
+
+        if (nextBlock != null)
         {
-            if (PawnGridMap[i].bHasHit) continue;
-            string name = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
-            GameObject nextBlock = RetrieveGameObjectOfName(name);
+            Vector3 newLocation = Vector3.SmoothDamp(
+                PawnGridMap[currentPawnMoveOrderIndex].Pawn.transform.position,
+                nextBlock.transform.position, ref PawnGridMap[currentPawnMoveOrderIndex].velocity, 
+                pawnMoveSpeed);
 
-            if(nextBlock != null)
-            {
-                Vector3 newLocation = Vector3.SmoothDamp(PawnGridMap[i].Pawn.transform.position,
-                    nextBlock.transform.position, ref PawnGridMap[i].velocity, pawnMoveSpeed);
-
-                PawnGridMap[i].Pawn.transform.position = newLocation;
-                float distance = Vector3.Distance(PawnGridMap[i].Pawn.transform.position, nextBlock.transform.position);
-            }
+            PawnGridMap[currentPawnMoveOrderIndex].Pawn.transform.position = newLocation;
         }
+
+        //for (int i = 0; i < PawnGridMap.Length; i++)
+        //{
+        //    if (PawnGridMap[i].bHasHit) continue;
+        //    string name = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
+        //    GameObject nextBlock = RetrieveGameObjectOfName(name);
+
+        //    if(nextBlock != null)
+        //    {
+        //        Vector3 newLocation = Vector3.SmoothDamp(PawnGridMap[i].Pawn.transform.position,
+        //            nextBlock.transform.position, ref PawnGridMap[i].velocity, pawnMoveSpeed);
+
+        //        PawnGridMap[i].Pawn.transform.position = newLocation;
+        //        float distance = Vector3.Distance(PawnGridMap[i].Pawn.transform.position, nextBlock.transform.position);
+        //    }
+        //}
     }
 
     private void SetBlockOccupied(string name, GameObject obj)

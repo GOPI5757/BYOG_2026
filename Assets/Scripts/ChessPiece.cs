@@ -19,7 +19,9 @@ public class ChessPiece : MonoBehaviour
             PawnScript ps = other.gameObject.GetComponent<PawnScript>();
             if(ps)
             {
-                ps.SetCanKnockback();
+                print(ps.name);
+                Vector3 direction = ps.transform.position - transform.position;
+                ps.SetCanKnockback(direction);
             }
         }
     }

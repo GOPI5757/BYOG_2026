@@ -15,11 +15,13 @@ public class OuterFrame : MonoBehaviour
     private float frameMoveElapsedTime;
     private Vector3 initialPos;
     private Vector3 targetPos;
-    
+
+    private bool bLevelClose;
 
     void Start()
     {
         FrameMoveArea.transform.localPosition = FrameMoveArea.transform.localPosition - new Vector3(0f, frameStartY, 0f);
+        
         initialPos = FrameMoveArea.transform.localPosition;
         targetPos = Vector3.zero;
     }
@@ -31,7 +33,8 @@ public class OuterFrame : MonoBehaviour
         {
             float t = frameMoveElapsedTime / frameMoveLerpTime;
             t = Mathf.SmoothStep(0f, 1f, t);
-            Vector3 newPos = Vector3.Lerp(initialPos, targetPos, t);
+            Vector3 newPos = Vector3.Lerp(!bLevelClose ? initialPos : targetPos, 
+                !bLevelClose ? targetPos : initialPos, t);
             FrameMoveArea.transform.localPosition = newPos;
 
             frameMoveElapsedTime += Time.deltaTime;
@@ -41,6 +44,12 @@ public class OuterFrame : MonoBehaviour
                 GameManager.instance.SetGameState(GameState.ChoosingStrategy);
             }
         }
+    }
+
+    public void SetLevelBool()
+    {
+        bLevelClose = true;
+        frameMoveElapsedTime = 0f;
     }
 
     public void SetCanActivateFrameMove(bool value)
