@@ -7,12 +7,14 @@ struct PawnGridMap
     public GameObject Pawn;
     public ChessGridName PawnGridName;
     public Vector3 velocity;
+    public bool bHasHit;
 
-    public PawnGridMap(GameObject obj, ChessGridName gridName, Vector3 vel)
+    public PawnGridMap(GameObject obj, ChessGridName gridName, Vector3 vel, bool hitValue)
     {
         Pawn = obj;
         PawnGridName = gridName;
         velocity = vel;
+        bHasHit = hitValue;
     }
 }
 
@@ -43,7 +45,7 @@ public class ChessBoardSpawner : MonoBehaviour
     void Start()
     {
         outerFrameObj = Instantiate(OuterFramePrefab, transform);
-
+        outerFrameObj.GetComponent<OuterFrame>().chessBoardSpawner = this;
         SpawnBlocks();
         SpawnPawns();
     }
@@ -82,8 +84,10 @@ public class ChessBoardSpawner : MonoBehaviour
             {
                 GameObject PawnSpawnObj = Instantiate(PawnPrefab, transform);
                 PawnSpawnObj.transform.position = chessBlock.transform.position;
+                PawnSpawnObj.GetComponent<PawnScript>().cb_spawner = this;
 
-                PawnGridMap map = new PawnGridMap(PawnSpawnObj, PawnGridMap[i].PawnGridName, PawnGridMap[i].velocity);
+                PawnGridMap map = new PawnGridMap(PawnSpawnObj, PawnGridMap[i].PawnGridName, 
+                    PawnGridMap[i].velocity, false);
                 PawnGridMap[i] = map;
 
                 SetBlockOccupied(name, PawnSpawnObj);
@@ -95,7 +99,19 @@ public class ChessBoardSpawner : MonoBehaviour
         prevPawnGridMap = PawnGridMap;
     }
 
-    private GameObject RetrieveGameObjectOfName(string name)
+    public void UpdateHasHitToPawn(GameObject pawn)
+    {
+        for(int i = 0; i < PawnGridMap.Length; i++)
+        {
+            if (PawnGridMap[i].Pawn == pawn)
+            {
+                PawnGridMap[i].bHasHit = true;
+                break;
+            }
+        }
+    }
+
+    public GameObject RetrieveGameObjectOfName(string name)
     {
         GameObject obj = null;
         for (int i = 0; i < transform.childCount; i++)
@@ -150,6 +166,7 @@ public class ChessBoardSpawner : MonoBehaviour
     {
         for(int i = 0; i < PawnGridMap.Length; i++)
         {
+            if (PawnGridMap[i].bHasHit) continue;
             string name = GetStringFromChessGridName(PawnGridMap[i].PawnGridName);
             GameObject nextBlock = RetrieveGameObjectOfName(name);
 
@@ -159,6 +176,7 @@ public class ChessBoardSpawner : MonoBehaviour
                     nextBlock.transform.position, ref PawnGridMap[i].velocity, pawnMoveSpeed);
 
                 PawnGridMap[i].Pawn.transform.position = newLocation;
+                float distance = Vector3.Distance(PawnGridMap[i].Pawn.transform.position, nextBlock.transform.position);
             }
         }
     }

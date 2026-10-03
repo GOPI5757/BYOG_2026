@@ -21,7 +21,7 @@ public class BlockScript : MonoBehaviour
     [SerializeField] private float decreaseLerpTime;
 
     [SerializeField] private GameObject occupiedObj;
-    
+
     private float decreaseElapsedTime;
     private Vector3 initialPosition;
     private Vector3 currentPosition;
@@ -51,6 +51,14 @@ public class BlockScript : MonoBehaviour
 
         transform.localPosition = newY_offset;
         decreaseElapsedTime += Time.deltaTime;
+
+        if(t >= 1)
+        {
+            if (GameManager.instance.GetGameState() == GameState.BlocksBackToPosition && !bIsDecreasingY)
+            {
+                GameManager.instance.SetGameState(GameState.PawnMoveWait);
+            }
+        }
     }
 
     public void SetIsDecreasingY(bool value)
@@ -127,4 +135,5 @@ public class BlockScript : MonoBehaviour
     }
 
     public bool IsOccupiedObj() { return occupiedObj != null; }
+    public GameObject GetOccupiedObj() { return occupiedObj; }
 }

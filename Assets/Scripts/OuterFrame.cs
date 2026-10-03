@@ -8,6 +8,8 @@ public class OuterFrame : MonoBehaviour
     [SerializeField] private float frameMoveLerpTime;
     [SerializeField] private GameObject[] smashSets;
 
+    public ChessBoardSpawner chessBoardSpawner;
+
     private bool canActivateFrameMove;
 
     private float frameMoveElapsedTime;
@@ -46,15 +48,26 @@ public class OuterFrame : MonoBehaviour
         canActivateFrameMove = true;
     }
 
-    public void PrepareSmashSet(int index)
+    public void PrepareSmashSet(int index, bool value)
     {
-        print("Preparing Smash Sets");
         for (int i = 0; i < smashSets[index].transform.childCount; i++)
         {
             HandSmasher handSmasher = smashSets[index].transform.GetChild(i).GetComponent<HandSmasher>();
             if(handSmasher)
             {
-                handSmasher.SetCanIndicateNextAttack(true);
+                handSmasher.SetCanIndicateNextAttack(value);
+            }
+        }
+    }
+
+    public void SmashHands(int index)
+    {
+        for (int i = 0; i < smashSets[index].transform.childCount; i++)
+        {
+            HandSmasher handSmasher = smashSets[index].transform.GetChild(i).GetComponent<HandSmasher>();
+            if (handSmasher)
+            {
+                handSmasher.SetCanSmashHand(true);
             }
         }
     }

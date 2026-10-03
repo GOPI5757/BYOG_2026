@@ -149,7 +149,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 25.400394, y: 0.00011715452, z: 1.4190658}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1750914448310669750}
@@ -239,7 +239,7 @@ Transform:
   m_GameObject: {fileID: 6170758986215923455}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 98.83802, y: 0.00011715452, z: 1.4190658}
+  m_LocalPosition: {x: 243, y: 0.00011715452, z: 1.4190658}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -445,8 +445,19 @@ MonoBehaviour:
   handRod: {fileID: 2925703473809470085}
   handRod_handLoc: {fileID: 1750914448310669750}
   HandTransform: {fileID: 7800107420748944847}
-  handSmashLerpTime: 1
+  handSmashLerpTime: 0.5
+  handBackLerpTime: 2
+  handWaitLerpTime: 1
+  handReturnLerpTime: 1.5
+  outerFrame: {fileID: 0}
   handRodMaxScale: 27
+  handRodBackScale: 0.5
+  startGridName:
+    alph_type: 0
+    number: 1
+  endGridName:
+    alph_type: 0
+    number: 1
   bCanSmashHand: 0
   bCanIndicateNextAttack: 0
   indicateAttackDelay: 0
