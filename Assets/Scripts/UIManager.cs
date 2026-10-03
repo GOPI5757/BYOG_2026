@@ -146,7 +146,6 @@ public class UIManager : MonoBehaviour
 
     public void PointerDown(Transform obj_trans)
     {
-        print(obj_trans.name + " : " + "Pointer Down");
         currentActiveDrag = obj_trans;
         Vector2 mousePosition = Mouse.current.position.ReadValue();
 
@@ -158,7 +157,6 @@ public class UIManager : MonoBehaviour
 
     public void PointerUp(Transform obj_trans)
     {
-        print(obj_trans.name + " : " + "Pointer Up");
         if(currentHoverSlotIndex != -1)
         {
             int cad_slotIndex = GetIndexFromSmashOrder(FindSlotDragIndex(currentActiveDrag));

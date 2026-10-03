@@ -48,7 +48,8 @@ public class OuterFrame : MonoBehaviour
 
     public void PrepareSmashSet(int index)
     {
-        for(int i = 0; i < smashSets[index].transform.childCount; i++)
+        print("Preparing Smash Sets");
+        for (int i = 0; i < smashSets[index].transform.childCount; i++)
         {
             HandSmasher handSmasher = smashSets[index].transform.GetChild(i).GetComponent<HandSmasher>();
             if(handSmasher)

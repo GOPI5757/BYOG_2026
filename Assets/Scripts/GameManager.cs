@@ -386,7 +386,7 @@ public class GameManager : MonoBehaviour
             {
                 if (IsInPossibleMovesList(hit.collider.name))
                 {
-                    gameState = GameState.MoveSelecting;
+                    SetGameState(GameState.MoveSelecting);
                     destinationGridName = hit.collider.name;
 
                     StartCoroutine(SetToMoving());
@@ -398,7 +398,7 @@ public class GameManager : MonoBehaviour
     
         if(inputActions.Player.LeftMouseButton.WasPressedThisFrame() && gameState == GameState.PlacingWall)
         {
-            gameState = GameState.Hiding;
+            SetGameState(GameState.Hiding);
             placeWallConformTargetPos = RetrieveGameObjectOfName(destinationGridName).transform.position;
 
             wallPlaceObj.transform.position = placeWallConformTargetPos + new Vector3(0f, placeWallConformY_Offset, 0f);
@@ -418,7 +418,7 @@ public class GameManager : MonoBehaviour
     IEnumerator SetToMoving()
     {
         yield return new WaitForSeconds(moveWaitTime);
-        gameState = GameState.Moving;
+        SetGameState(GameState.Moving);
     }
 
     private void MoveToDestination()
@@ -437,7 +437,7 @@ public class GameManager : MonoBehaviour
        
         if(distance <= 0.11f)
         {
-            gameState = GameState.PlacingWall;
+            SetGameState(GameState.PlacingWall);
 
             alphabetType type;
             System.Enum.TryParse(destinationGridName[0].ToString(), out type);
@@ -632,7 +632,7 @@ public class GameManager : MonoBehaviour
 
         if (pieceChangeElapsedTime >= activeLevelData.pieceChangeTimeInterval)
         {
-            gameState = GameState.PlayerScalingDown;
+            SetGameState(GameState.PlayerScalingDown);
             currentHoverBS = null;
             prevHoverBS = null;
             activeLevelData.chessBoard.GetComponent<ChessBoardSpawner>().MovePawnsForward();
@@ -665,10 +665,10 @@ public class GameManager : MonoBehaviour
             if (gameState == GameState.PlayerScalingDown)
             {
                 ChangeChessPiece();
-                gameState = GameState.PlayerScalingUp;
+                SetGameState(GameState.PlayerScalingUp);
             } else
             {
-                gameState = GameState.Playing;
+                SetGameState(GameState.Playing);
                 FindPossibleMoves();
             }
         }
@@ -909,6 +909,7 @@ public class GameManager : MonoBehaviour
 
         if(gameState == GameState.Playing)
         {
+            SetCameraAngle();
             GameObject chessObject = activeLevelData.chessBoard;
             if(chessObject)
             {
@@ -918,7 +919,8 @@ public class GameManager : MonoBehaviour
                     OuterFrame outerFrame = cb_spawner.GetOuterFrameObject().GetComponent<OuterFrame>();
                     if(outerFrame)
                     {
-                        outerFrame.PrepareSmashSet(currentSmashOrder);
+                        print("Outer Frame");
+                        outerFrame.PrepareSmashSet(activeSmashOrder[currentSmashOrder]);
                     }
                 }
             }

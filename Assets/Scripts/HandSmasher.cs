@@ -47,6 +47,7 @@ public class HandSmasher : MonoBehaviour
 
     public void SetCanIndicateNextAttack(bool value)
     {
+        print("Next Attack");
         bCanIndicateNextAttack = value;
         StartCoroutine(SetHandMat());
     }
@@ -54,8 +55,11 @@ public class HandSmasher : MonoBehaviour
     IEnumerator SetHandMat()
     {
         yield return new WaitForSeconds(bCanIndicateNextAttack ? indicateAttackDelay : 
-            1 - indicateAttackDelay);
-        HandTransform.GetComponent<Renderer>().material = bCanIndicateNextAttack ? 
-            hand_indicateMaterial : hand_normalMaterial;
+            0.5f - indicateAttackDelay);
+        Renderer handRenderer = HandTransform.GetComponent<Renderer>();
+        Material[] mats = handRenderer.materials;
+        mats[1] = bCanIndicateNextAttack ? hand_indicateMaterial : hand_normalMaterial;
+
+        handRenderer.materials = mats;
     }
 }
