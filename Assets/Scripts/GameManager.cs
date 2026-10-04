@@ -117,6 +117,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Transform[] BoardcamAngles;
     [SerializeField] private Transform[] TotalcamAngles;
+    [SerializeField] private List<Vector3> BoardCamAnglesDistances = new List<Vector3>();
     [SerializeField] private float camAngleSpeed;
     [SerializeField] private float camLerpTime;
     [SerializeField] private TMP_Text camAngleText;
@@ -242,6 +243,8 @@ public class GameManager : MonoBehaviour
         foreach (Transform ca_trans in BoardcamAngles)
         {
             ca_trans.transform.parent = camAngleParentTrans;
+            Vector3 difference = (ca_trans.position - camAngleParentTrans.position);
+            BoardCamAnglesDistances.Add(difference);
         }
 
         foreach (Transform ca_trans in TotalcamAngles)
@@ -1050,9 +1053,11 @@ public class GameManager : MonoBehaviour
                 activeLevelData = levelDatas[activeLevelDataIndex];
 
                 Transform camAngleParentTrans = RetrieveCamAnglesTransformFromChessBoard();
-                foreach (Transform ca_trans in BoardcamAngles)
+
+                for(int i = 0; i < BoardcamAngles.Length; i++)
                 {
-                    ca_trans.transform.parent = camAngleParentTrans;
+                    BoardcamAngles[i].transform.parent = camAngleParentTrans;
+                    BoardcamAngles[i].transform.position = camAngleParentTrans.position + BoardCamAnglesDistances[i];
                 }
                 SetGameState(GameState.PreparingArena);
                 StartCoroutine(StartGame());

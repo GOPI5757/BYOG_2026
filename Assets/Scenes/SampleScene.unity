@@ -7280,6 +7280,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 140891497}
   m_Mesh: {fileID: -3604861494000191839, guid: babc00b0d46a45348a555d2a8ba31c19, type: 3}
+--- !u!1 &145540374
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 145540375}
+  m_Layer: 0
+  m_Name: CAM_ANGLES
+  m_TagString: camAnglesParent
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &145540375
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 145540374}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1004157746}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &148922166
 GameObject:
   m_ObjectHideFlags: 0
@@ -25603,6 +25634,93 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 505332140}
   m_Mesh: {fileID: -3604861494000191839, guid: babc00b0d46a45348a555d2a8ba31c19, type: 3}
+--- !u!1 &509667685
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 509667687}
+  - component: {fileID: 509667686}
+  m_Layer: 0
+  m_Name: ChessBoardSpawner (5)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &509667686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 509667685}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1f41be2bead722448a94c43fc57dea5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChessBoardSpawner
+  BlockPrefab: {fileID: 175806412271338047, guid: df7182ae3f9c15b4a9d9c1b8f278411c, type: 3}
+  OuterFramePrefab: {fileID: 6671823267025389213, guid: 1ebf219c0b2e2b3409a3fd154fb530b4, type: 3}
+  PawnPrefab: {fileID: 7554814493900602981, guid: c0603fa224969ba499946181081b2c5c, type: 3}
+  KingPrefab: {fileID: 5678346930398938092, guid: e5b5caffdfe7b7d4b9ca97af25285b4a, type: 3}
+  startPos: {x: -7, y: -7}
+  PawnGridMap:
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 5
+      number: 5
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 7
+      number: 8
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 2
+      number: 8
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 1
+      number: 6
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  KingGridMap:
+    Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 7
+      number: 4
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  pawnMoveSpeed: 0.35
+  decreaseYOffset_A: 2
+  decreaseYOffset_B: 2.2
+  BlockMat_A: {fileID: 2100000, guid: 8f410b30960e35e49835fbd9e8b452cf, type: 2}
+  BlockMat_B: {fileID: 2100000, guid: b3b68087ef597b3459e31398c60fe410, type: 2}
+--- !u!4 &509667687
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 509667685}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 160}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1912872182}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &510354704
 GameObject:
   m_ObjectHideFlags: 0
@@ -30386,7 +30504,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &620165968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31950,6 +32068,99 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 639959496}
   m_Mesh: {fileID: -3604861494000191839, guid: babc00b0d46a45348a555d2a8ba31c19, type: 3}
+--- !u!1 &641264904
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 641264906}
+  - component: {fileID: 641264905}
+  m_Layer: 0
+  m_Name: ChessBoardSpawner (6)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &641264905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641264904}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1f41be2bead722448a94c43fc57dea5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChessBoardSpawner
+  BlockPrefab: {fileID: 175806412271338047, guid: df7182ae3f9c15b4a9d9c1b8f278411c, type: 3}
+  OuterFramePrefab: {fileID: 6671823267025389213, guid: 1ebf219c0b2e2b3409a3fd154fb530b4, type: 3}
+  PawnPrefab: {fileID: 7554814493900602981, guid: c0603fa224969ba499946181081b2c5c, type: 3}
+  KingPrefab: {fileID: 5678346930398938092, guid: e5b5caffdfe7b7d4b9ca97af25285b4a, type: 3}
+  startPos: {x: -7, y: -7}
+  PawnGridMap:
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 4
+      number: 5
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 5
+      number: 8
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 7
+      number: 6
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 0
+      number: 4
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 2
+      number: 7
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  KingGridMap:
+    Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 5
+      number: 2
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  pawnMoveSpeed: 0.35
+  decreaseYOffset_A: 2
+  decreaseYOffset_B: 2.2
+  BlockMat_A: {fileID: 2100000, guid: 8f410b30960e35e49835fbd9e8b452cf, type: 2}
+  BlockMat_B: {fileID: 2100000, guid: b3b68087ef597b3459e31398c60fe410, type: 2}
+--- !u!4 &641264906
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 641264904}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 200}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1971079319}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &641868434
 GameObject:
   m_ObjectHideFlags: 0
@@ -46169,6 +46380,99 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1001597484}
   m_Mesh: {fileID: -3604861494000191839, guid: babc00b0d46a45348a555d2a8ba31c19, type: 3}
+--- !u!1 &1004157744
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1004157746}
+  - component: {fileID: 1004157745}
+  m_Layer: 0
+  m_Name: ChessBoardSpawner (4)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1004157745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1004157744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1f41be2bead722448a94c43fc57dea5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChessBoardSpawner
+  BlockPrefab: {fileID: 175806412271338047, guid: df7182ae3f9c15b4a9d9c1b8f278411c, type: 3}
+  OuterFramePrefab: {fileID: 6671823267025389213, guid: 1ebf219c0b2e2b3409a3fd154fb530b4, type: 3}
+  PawnPrefab: {fileID: 7554814493900602981, guid: c0603fa224969ba499946181081b2c5c, type: 3}
+  KingPrefab: {fileID: 5678346930398938092, guid: e5b5caffdfe7b7d4b9ca97af25285b4a, type: 3}
+  startPos: {x: -7, y: -7}
+  PawnGridMap:
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 3
+      number: 4
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 3
+      number: 8
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 1
+      number: 7
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 6
+      number: 4
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 0
+      number: 8
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  KingGridMap:
+    Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 7
+      number: 5
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  pawnMoveSpeed: 0.35
+  decreaseYOffset_A: 2
+  decreaseYOffset_B: 2.2
+  BlockMat_A: {fileID: 2100000, guid: 8f410b30960e35e49835fbd9e8b452cf, type: 2}
+  BlockMat_B: {fileID: 2100000, guid: b3b68087ef597b3459e31398c60fe410, type: 2}
+--- !u!4 &1004157746
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1004157744}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 120}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 145540375}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1004916693
 GameObject:
   m_ObjectHideFlags: 0
@@ -54001,7 +54305,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1182773921
 Transform:
   m_ObjectHideFlags: 0
@@ -58706,6 +59010,87 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1298332843}
   m_Mesh: {fileID: -3604861494000191839, guid: babc00b0d46a45348a555d2a8ba31c19, type: 3}
+--- !u!1 &1301605489
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1301605491}
+  - component: {fileID: 1301605490}
+  m_Layer: 0
+  m_Name: ChessBoardSpawner (3)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1301605490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1301605489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1f41be2bead722448a94c43fc57dea5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChessBoardSpawner
+  BlockPrefab: {fileID: 175806412271338047, guid: df7182ae3f9c15b4a9d9c1b8f278411c, type: 3}
+  OuterFramePrefab: {fileID: 6671823267025389213, guid: 1ebf219c0b2e2b3409a3fd154fb530b4, type: 3}
+  PawnPrefab: {fileID: 7554814493900602981, guid: c0603fa224969ba499946181081b2c5c, type: 3}
+  KingPrefab: {fileID: 5678346930398938092, guid: e5b5caffdfe7b7d4b9ca97af25285b4a, type: 3}
+  startPos: {x: -7, y: -7}
+  PawnGridMap:
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 3
+      number: 3
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 4
+      number: 6
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  - Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 1
+      number: 8
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  KingGridMap:
+    Pawn: {fileID: 0}
+    PawnGridName:
+      alph_type: 5
+      number: 7
+    velocity: {x: 0, y: 0, z: 0}
+    bHasHit: 0
+  pawnMoveSpeed: 0.35
+  decreaseYOffset_A: 2
+  decreaseYOffset_B: 2.2
+  BlockMat_A: {fileID: 2100000, guid: 8f410b30960e35e49835fbd9e8b452cf, type: 2}
+  BlockMat_B: {fileID: 2100000, guid: b3b68087ef597b3459e31398c60fe410, type: 2}
+--- !u!4 &1301605491
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1301605489}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 80}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1315856812}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1304915880
 GameObject:
   m_ObjectHideFlags: 0
@@ -59246,6 +59631,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1315326871}
   m_Mesh: {fileID: -3604861494000191839, guid: babc00b0d46a45348a555d2a8ba31c19, type: 3}
+--- !u!1 &1315856811
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1315856812}
+  m_Layer: 0
+  m_Name: CAM_ANGLES
+  m_TagString: camAnglesParent
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1315856812
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1315856811}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1301605491}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1316115623
 GameObject:
   m_ObjectHideFlags: 0
@@ -82374,6 +82790,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1911036956}
   m_Mesh: {fileID: -3604861494000191839, guid: babc00b0d46a45348a555d2a8ba31c19, type: 3}
+--- !u!1 &1912872181
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1912872182}
+  m_Layer: 0
+  m_Name: CAM_ANGLES
+  m_TagString: camAnglesParent
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1912872182
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1912872181}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 509667687}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1916703369
 GameObject:
   m_ObjectHideFlags: 0
@@ -84416,6 +84863,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1970305265}
   m_Mesh: {fileID: -3604861494000191839, guid: babc00b0d46a45348a555d2a8ba31c19, type: 3}
+--- !u!1 &1971079318
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1971079319}
+  m_Layer: 0
+  m_Name: CAM_ANGLES
+  m_TagString: camAnglesParent
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1971079319
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1971079318}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 641264906}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1973296691
 GameObject:
   m_ObjectHideFlags: 0
@@ -86265,9 +86743,9 @@ MonoBehaviour:
   MainCamera: {fileID: 330585546}
   bottomPanel: {fileID: 380048318}
   levelDatas:
-  - chessBoard: {fileID: 620165967}
-    typeOrder: 000000000100000002000000
-    totalMoves: 2
+  - chessBoard: {fileID: 1182773920}
+    typeOrder: 000000000200000001000000
+    totalMoves: 1
     ChessGridName:
       alph_type: 3
       number: 1
@@ -86277,18 +86755,30 @@ MonoBehaviour:
     ChessGridName:
       alph_type: 3
       number: 1
-  - chessBoard: {fileID: 1182773920}
-    typeOrder: 000000000200000001000000
+  - chessBoard: {fileID: 1301605489}
+    typeOrder: 000000000100000002000000
     totalMoves: 1
     ChessGridName:
       alph_type: 3
-      number: 1
-  - chessBoard: {fileID: 0}
-    typeOrder: 
-    totalMoves: 0
-    ChessGridName:
-      alph_type: 0
       number: 0
+  - chessBoard: {fileID: 1004157744}
+    typeOrder: 000000000100000002000000
+    totalMoves: 2
+    ChessGridName:
+      alph_type: 3
+      number: 1
+  - chessBoard: {fileID: 509667685}
+    typeOrder: 010000000000000002000000
+    totalMoves: 2
+    ChessGridName:
+      alph_type: 2
+      number: 2
+  - chessBoard: {fileID: 509667685}
+    typeOrder: 020000000100000000000000
+    totalMoves: 2
+    ChessGridName:
+      alph_type: 3
+      number: 3
   chessPieceMapSO: {fileID: 11400000, guid: 6eb890cfdea6ca24fb5ebd4bcf22ca1b, type: 2}
   chessPieceOffsetY: 0
   chessBlockBusyOffsetY: 0.1
@@ -86312,9 +86802,9 @@ MonoBehaviour:
   placeWallMaterial_conform: {fileID: 2100000, guid: 7c64b1c52c513bb469a4dc6c7709f076, type: 2}
   smashOverDelay: 1
   activeSmashOrder: 
-  transitionLerpTime: 3
+  transitionLerpTime: 2
   transitionLevelDelay: 1
-  jumpHeight: 4
+  jumpHeight: 8
   BoardcamAngles:
   - {fileID: 1962665208}
   - {fileID: 115130789}
@@ -86323,6 +86813,7 @@ MonoBehaviour:
   - {fileID: 1962665208}
   - {fileID: 1881896491}
   - {fileID: 115130789}
+  BoardCamAnglesDistances: []
   camAngleSpeed: 0.1
   camLerpTime: 1
   camAngleText: {fileID: 248101890}
@@ -92424,6 +92915,10 @@ SceneRoots:
   - {fileID: 1182773921}
   - {fileID: 620165969}
   - {fileID: 601993125}
+  - {fileID: 1301605491}
+  - {fileID: 1004157746}
+  - {fileID: 509667687}
+  - {fileID: 641264906}
   - {fileID: 1610440689}
   - {fileID: 622530223}
   - {fileID: 909891319}

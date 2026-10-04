@@ -43,7 +43,7 @@ public class OuterFrame : MonoBehaviour
 
             if(t >= 1)
             {
-                if(GameManager.instance.GetGameState() == GameState.PreparingArena)
+                if(GameManager.instance.GetGameState() == GameState.PreparingArena && !bLevelClose)
                 {
                     GameManager.instance.SetGameState(GameState.ChoosingStrategy);
                 } else
