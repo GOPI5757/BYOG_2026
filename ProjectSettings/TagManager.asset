@@ -8,6 +8,7 @@ TagManager:
   - block
   - camAnglesParent
   - camAngles
+  - king
   layers:
   - Default
   - TransparentFX

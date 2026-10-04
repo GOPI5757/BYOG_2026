@@ -16,6 +16,8 @@ public class BlockScript : MonoBehaviour
     [SerializeField] private Material SelectedMaterial;
     [SerializeField] private float materialLerpTime;
 
+    private bool bHeightMoveCompleted;
+
     [Header("Decrease Height")]
     [SerializeField] private float decreaseYOffset;
     [SerializeField] private float decreaseLerpTime;
@@ -43,20 +45,59 @@ public class BlockScript : MonoBehaviour
         DecreaseHeight();
     }
 
+    //void DecreaseHeight()
+    //{
+    //    float t = decreaseElapsedTime / decreaseLerpTime;
+    //    Vector3 newY_offset = Vector3.Lerp(currentPosition,
+    //        bIsDecreasingY ? decreaseHeightPosition : initialPosition, t);
+
+    //    transform.localPosition = newY_offset;
+    //    decreaseElapsedTime += Time.deltaTime;
+
+    //    if(t >= 1)
+    //    {
+    //        if (GameManager.instance.GetGameState() == GameState.BlocksBackToPosition && !bIsDecreasingY)
+    //        {
+    //            GameManager.instance.SetGameState(GameState.PawnMoveWait);
+    //        }
+    //    }
+    //}
+
     void DecreaseHeight()
     {
-        float t = decreaseElapsedTime / decreaseLerpTime;
-        Vector3 newY_offset = Vector3.Lerp(currentPosition,
-            bIsDecreasingY ? decreaseHeightPosition : initialPosition, t);
+        if (bHeightMoveCompleted)
+            return;
 
-        transform.localPosition = newY_offset;
         decreaseElapsedTime += Time.deltaTime;
 
-        if(t >= 1)
+        float t = Mathf.Clamp01(
+            decreaseElapsedTime / decreaseLerpTime
+        );
+
+        Vector3 targetPosition =
+            bIsDecreasingY
+            ? decreaseHeightPosition
+            : initialPosition;
+
+        transform.localPosition = Vector3.Lerp(
+            currentPosition,
+            targetPosition,
+            t
+        );
+
+        if (t >= 1f)
         {
-            if (GameManager.instance.GetGameState() == GameState.BlocksBackToPosition && !bIsDecreasingY)
+            transform.localPosition = targetPosition;
+
+            bHeightMoveCompleted = true;
+
+            if (!bIsDecreasingY &&
+                GameManager.instance.GetGameState() ==
+                GameState.BlocksBackToPosition)
             {
-                GameManager.instance.SetGameState(GameState.PawnMoveWait);
+                GameManager.instance.SetGameState(
+                    GameState.PawnMoveWait
+                );
             }
         }
     }
@@ -66,6 +107,8 @@ public class BlockScript : MonoBehaviour
         bIsDecreasingY = value;
         decreaseElapsedTime = 0f;
         currentPosition = transform.localPosition;
+
+        bHeightMoveCompleted = false;
     }
 
     public void SetDecreaseOffset(float value)

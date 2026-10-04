@@ -1,6 +1,4 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem.Android;
 
 public class PawnScript : MonoBehaviour
 {
@@ -8,6 +6,8 @@ public class PawnScript : MonoBehaviour
     [SerializeField] private float knockbackForce = 3f;
     [SerializeField] private float upwardForce = 1f;
     [SerializeField] private float destroyTime;
+
+    public BlockScript currentBS;
 
     public ChessBoardSpawner cb_spawner;
     private Vector3 hitDirection;

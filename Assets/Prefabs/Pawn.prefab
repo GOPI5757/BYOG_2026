@@ -127,7 +127,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PawnScript
   bCanKnockback: 0
-  knockbackForce: 10
+  knockbackForce: 20
   upwardForce: 2
   destroyTime: 2.5
   cb_spawner: {fileID: 0}

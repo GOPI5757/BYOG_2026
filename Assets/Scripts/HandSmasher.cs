@@ -19,6 +19,11 @@ public class HandSmasher : MonoBehaviour
     [SerializeField] private float handBackLerpTime;
     [SerializeField] private float handWaitLerpTime;
     [SerializeField] private float handReturnLerpTime;
+
+    [SerializeField] private float handBackSpeed = 2f;
+    [SerializeField] private float handSmashSpeed = 8f;
+    [SerializeField] private float handReturnSpeed = 1.5f;
+
     [SerializeField] private OuterFrame outerFrame;
 
     [SerializeField] private float handRodMaxScale;
@@ -71,75 +76,180 @@ public class HandSmasher : MonoBehaviour
         HandleSmashing();
     }
 
+    //private void HandleSmashing()
+    //{
+    //    if (!bCanSmashHand) return;
+    //    switch(state)
+    //    {
+    //        case smashState.back:
+    //            finalLerpTime = handBackLerpTime;
+    //            finalLerpB = handRodBackScale;
+    //            break;
+    //        case smashState.Smash:
+    //            finalLerpTime = handSmashLerpTime;
+    //            finalLerpB = hr_maxScaleDynamic;
+    //            break;
+    //        case smashState.wait:
+    //            finalLerpTime = handWaitLerpTime;
+    //            break;
+    //        case smashState.Return:
+    //            finalLerpTime = handReturnLerpTime;
+    //            finalLerpB = handRodInitialScale;
+    //            break;
+    //        default:
+    //            break;
+    //    }
+
+    //    float t = handSmashElapsedTime / finalLerpTime;
+    //    t = Mathf.SmoothStep(0f, 1f, t);
+
+    //    if(state != smashState.wait)
+    //    {
+    //        float newLocalScale = Mathf.Lerp(handRodCurrentScale, finalLerpB, t);
+
+    //        handRod.transform.localScale = new Vector3(newLocalScale, 1f, 1f);
+    //    }
+    //    handSmashElapsedTime += Time.deltaTime;
+
+    //    if(t >= 1)
+    //    {
+    //        handSmashElapsedTime = 0f;
+    //        handRodCurrentScale = handRod.transform.localScale.x;
+    //        if (state == smashState.back)
+    //        {
+    //            state = smashState.Smash;
+    //        } else if(state == smashState.Smash)
+    //        {
+    //            state = smashState.wait;
+    //        }  else if(state == smashState.wait)
+    //        {
+    //            state = smashState.Return;
+    //        }
+    //        else if (state == smashState.Return)
+    //        {
+    //            bCanSmashHand = false;
+    //            StartCoroutine(SetSmashOver());
+    //        }
+    //    }
+    //}
+
     private void HandleSmashing()
     {
-        if (!bCanSmashHand) return;
-        switch(state)
+        if (!bCanSmashHand)
+            return;
+
+        switch (state)
         {
             case smashState.back:
-                finalLerpTime = handBackLerpTime;
-                finalLerpB = handRodBackScale;
-                break;
+                {
+                    finalLerpB = handRodBackScale;
+
+                    MoveHandRod(finalLerpB, handBackSpeed);
+
+                    if (Mathf.Approximately(handRod.transform.localScale.x, finalLerpB))
+                    {
+                        handRodCurrentScale = finalLerpB;
+                        state = smashState.Smash;
+                    }
+
+                    break;
+                }
+
             case smashState.Smash:
-                finalLerpTime = handSmashLerpTime;
-                finalLerpB = hr_maxScaleDynamic;
-                break;
+                {
+                    finalLerpB = hr_maxScaleDynamic;
+
+                    MoveHandRod(finalLerpB, handSmashSpeed);
+
+                    if (Mathf.Approximately(handRod.transform.localScale.x, finalLerpB))
+                    {
+                        handSmashElapsedTime = 0f;
+                        handRodCurrentScale = finalLerpB;
+                        state = smashState.wait;
+                    }
+
+                    break;
+                }
+
             case smashState.wait:
-                finalLerpTime = handWaitLerpTime;
-                break;
+                {
+                    handSmashElapsedTime += Time.deltaTime;
+
+                    if (handSmashElapsedTime >= handWaitLerpTime)
+                    {
+                        handSmashElapsedTime = 0f;
+                        state = smashState.Return;
+                    }
+
+                    break;
+                }
+
             case smashState.Return:
-                finalLerpTime = handReturnLerpTime;
-                finalLerpB = handRodInitialScale;
-                break;
-            default:
-                break;
+                {
+                    finalLerpB = handRodInitialScale;
+
+                    MoveHandRod(finalLerpB, handReturnSpeed);
+
+                    if (Mathf.Approximately(handRod.transform.localScale.x, finalLerpB))
+                    {
+                        handRodCurrentScale = finalLerpB;
+
+                        bCanSmashHand = false;
+                        StartCoroutine(SetSmashOver());
+                    }
+
+                    break;
+                }
         }
+    }
 
-        float t = handSmashElapsedTime / finalLerpTime;
-        t = Mathf.SmoothStep(0f, 1f, t);
+    private void MoveHandRod(float targetScale, float speed)
+    {
+        float currentScale = handRod.transform.localScale.x;
 
-        if(state != smashState.wait)
-        {
-            float newLocalScale = Mathf.Lerp(handRodCurrentScale, finalLerpB, t);
+        float newLocalScale = Mathf.MoveTowards(
+            currentScale,
+            targetScale,
+            speed * Time.deltaTime
+        );
 
-            handRod.transform.localScale = new Vector3(newLocalScale, 1f, 1f);
-        }
-        handSmashElapsedTime += Time.deltaTime;
+        Vector3 scale = handRod.transform.localScale;
+        scale.x = newLocalScale;
 
-        if(t >= 1)
-        {
-            handSmashElapsedTime = 0f;
-            handRodCurrentScale = handRod.transform.localScale.x;
-            if (state == smashState.back)
-            {
-                state = smashState.Smash;
-            } else if(state == smashState.Smash)
-            {
-                state = smashState.wait;
-            }  else if(state == smashState.wait)
-            {
-                state = smashState.Return;
-            }
-            else if (state == smashState.Return)
-            {
-                bCanSmashHand = false;
-                StartCoroutine(SetSmashOver());
-            }
-        }
+        handRod.transform.localScale = scale;
+
+        //if(Mathf.RoundToInt(scale.x) == Mathf.RoundToInt(targetScale))
+        //{
+        //    if (Mathf.RoundToInt(targetScale) != Mathf.RoundToInt(handRodMaxScale))
+        //    {
+        //        SoundManager.instance.PlaySound(SoundManager.instance.SmashSound);
+        //    }
+        //}
     }
 
     IEnumerator SetSmashOver()
     {
         yield return new WaitForSeconds(GameManager.instance.smashOverDelay);
-        if(GameManager.instance.GetGameState() != GameState.BlocksBackToPosition)
+        //if(GameManager.instance.GetGameState() != GameState.PawnMoveWait)
+        //{
+        //    GameManager.instance.SetGameState(GameState.BlocksBackToPosition);
+        //}
+
+        if (GameManager.instance.GetGameState() == GameState.Hiding)
         {
-            GameManager.instance.SetGameState(GameState.BlocksBackToPosition);
+            GameManager.instance.SetGameState(
+                GameState.BlocksBackToPosition
+            );
         }
     }
 
     public void SetCanSmashHand(bool value)
     {
         bCanSmashHand = value;
+        if(bCanSmashHand)
+        {
+            SoundManager.instance.PlaySound(SoundManager.instance.SmashSound);
+        }
         state = smashState.back;
         FindMaxScale();
     }

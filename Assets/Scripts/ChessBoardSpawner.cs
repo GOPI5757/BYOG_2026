@@ -124,6 +124,7 @@ public class ChessBoardSpawner : MonoBehaviour
             SetBlockOccupied(name, PawnSpawnObj);
 
             PawnSpawnObj.transform.parent = chessBlock.transform;
+            PawnSpawnObj.transform.GetComponent<PawnScript>().currentBS = chessBlock.GetComponent<BlockScript>();
         }
     }
 
@@ -193,7 +194,11 @@ public class ChessBoardSpawner : MonoBehaviour
                             PawnGridMap[currentPawnMoveOrderIndex].PawnGridName);
                         SetBlockOccupied(name_1, PawnGridMap[currentPawnMoveOrderIndex].Pawn);
 
-                        PawnGridMap[currentPawnMoveOrderIndex].Pawn.transform.parent = nextBlock.transform;
+                        if (!PawnGridMap[currentPawnMoveOrderIndex].bHasHit)
+                        {
+                            PawnGridMap[currentPawnMoveOrderIndex].Pawn.transform.parent = nextBlock.transform;
+                            PawnGridMap[currentPawnMoveOrderIndex].Pawn.transform.GetComponent<PawnScript>().currentBS = nextBlock.GetComponent<BlockScript>();
+                        }
                     }
                 }
             }
@@ -234,7 +239,7 @@ public class ChessBoardSpawner : MonoBehaviour
         return KingGridMap.bHasHit;
     }
 
-    private bool IsAllPawnsDefeated()
+    public bool IsAllPawnsDefeated()
     {
         for(int i = 0; i < PawnGridMap.Length; i++)
         {
@@ -246,7 +251,7 @@ public class ChessBoardSpawner : MonoBehaviour
 
     private void FindNextPawn()
     {
-        for(int i = 0; i < PawnGridMap.Length - 1; i++)
+        for(int i = 0; i < PawnGridMap.Length; i++)
         {
             if(++currentPawnMoveOrderIndex >= PawnGridMap.Length)
             {
@@ -262,7 +267,7 @@ public class ChessBoardSpawner : MonoBehaviour
 
     private void UpdatePawnLocations()
     {
-        if (PawnGridMap[currentPawnMoveOrderIndex].Pawn == null) return;
+        if (PawnGridMap[currentPawnMoveOrderIndex].bHasHit) return;
         string name = GetStringFromChessGridName(PawnGridMap[currentPawnMoveOrderIndex].PawnGridName);
         GameObject nextBlock = RetrieveGameObjectOfName(name);
 

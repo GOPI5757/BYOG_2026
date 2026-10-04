@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
 
 public class UIManager : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Transform[] slotDragButtons;
     [SerializeField] private List<Vector3> slotDragInitialPositions;
     [SerializeField] private Sprite pb_activeSprite, pb_inactiveSprite;
+
+
 
     [SerializeField] private GameObject bottomPanel;
 
@@ -28,6 +31,16 @@ public class UIManager : MonoBehaviour
     private int currentHoverSlotIndex;
 
     private Vector3 positionDifference;
+
+    public static UIManager instance;
+
+    private void Awake()
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+    }
 
     void Start()
     {
@@ -52,31 +65,90 @@ public class UIManager : MonoBehaviour
         CheckOverlaps();
     }
 
+    public void ResetBottomPanel()
+    {
+        currentActiveDrag = null;
+        currentHoverSlotIndex = -1;
+
+        for (int i = 0; i < smashOrder.Count; i++)
+        {
+            smashOrder[i] = -1;
+        }
+
+        for (int i = 0; i < slots.Length; i++)
+        {
+            slots[i].GetComponent<Image>().sprite = emptySlotSprite;
+        }
+
+        for (int i = 0; i < slotDragButtons.Length; i++)
+        {
+            slotDragButtons[i].position = slotDragInitialPositions[i];
+        }
+
+        pb_button.enabled = false;
+        pb_image.sprite = pb_inactiveSprite;
+    }
+
+    //private void CheckOverlaps()
+    //{
+    //    if(currentActiveDrag)
+    //    {
+    //        bool flag = false;
+    //        for(int i = 0; i < slots.Length; i++)
+    //        {
+    //            slots[i].GetComponent<Image>().sprite = emptySlotSprite;
+    //        }
+
+    //        for (int i = 0; i < slots.Length; i++)
+    //        {
+    //            RectTransform cad_rt = currentActiveDrag.GetComponent<RectTransform>();
+    //            RectTransform slot_rt = slots[i].GetComponent<RectTransform>();
+    //            if(AreUIElementsOverlapping(cad_rt, slot_rt))
+    //            {
+    //                currentHoverSlotIndex = i;
+    //                flag = true;
+    //                break;
+    //            }
+    //        }
+
+    //        if(!flag)
+    //        {
+    //            currentHoverSlotIndex = -1;
+    //        }
+    //    }
+    //}
+
     private void CheckOverlaps()
     {
-        if(currentActiveDrag)
+        if (currentActiveDrag == null)
+            return;
+
+        currentHoverSlotIndex = -1;
+
+        // Reset every slot first
+        for (int i = 0; i < slots.Length; i++)
         {
-            bool flag = false;
-            for(int i = 0; i < slots.Length; i++)
-            {
-                slots[i].GetComponent<Image>().sprite = emptySlotSprite;
-            }
+            slots[i].GetComponent<Image>().sprite = emptySlotSprite;
+        }
 
-            for (int i = 0; i < slots.Length; i++)
-            {
-                RectTransform cad_rt = currentActiveDrag.GetComponent<RectTransform>();
-                RectTransform slot_rt = slots[i].GetComponent<RectTransform>();
-                if(AreUIElementsOverlapping(cad_rt, slot_rt))
-                {
-                    currentHoverSlotIndex = i;
-                    flag = true;
-                    break;
-                }
-            }
+        // Find currently hovered slot
+        for (int i = 0; i < slots.Length; i++)
+        {
+            RectTransform dragRT =
+                currentActiveDrag.GetComponent<RectTransform>();
 
-            if(!flag)
+            RectTransform slotRT =
+                slots[i].GetComponent<RectTransform>();
+
+            if (AreUIElementsOverlapping(dragRT, slotRT))
             {
-                currentHoverSlotIndex = -1;
+                currentHoverSlotIndex = i;
+
+                // Show hover sprite
+                slots[i].GetComponent<Image>().sprite =
+                    hoverSlotSprite;
+
+                break;
             }
         }
     }
@@ -144,49 +216,150 @@ public class UIManager : MonoBehaviour
         return index;
     }
 
+    //public void PointerDown(Transform obj_trans)
+    //{
+    //    currentActiveDrag = obj_trans;
+    //    Vector2 mousePosition = Mouse.current.position.ReadValue();
+
+    //    positionDifference =  new Vector2(currentActiveDrag.position.x,
+    //        currentActiveDrag.position.y) - mousePosition;
+
+    //    currentActiveDrag.SetAsLastSibling();
+    //}
+
     public void PointerDown(Transform obj_trans)
     {
-        currentActiveDrag = obj_trans;
-        Vector2 mousePosition = Mouse.current.position.ReadValue();
+        currentHoverSlotIndex = -1;
 
-        positionDifference =  new Vector2(currentActiveDrag.position.x,
-            currentActiveDrag.position.y) - mousePosition;
+        currentActiveDrag = obj_trans;
+
+        Vector2 mousePosition =
+            Mouse.current.position.ReadValue();
+
+        positionDifference =
+            new Vector2(
+                currentActiveDrag.position.x,
+                currentActiveDrag.position.y
+            ) - mousePosition;
 
         currentActiveDrag.SetAsLastSibling();
+
+        // Check immediately
+        //SoundManager.instance.PlaySound(SoundManager.instance.hoverSound);
+        CheckOverlaps();
     }
+
+    //public void PointerUp(Transform obj_trans)
+    //{
+    //    if(currentHoverSlotIndex != -1)
+    //    {
+    //        int cad_slotIndex = GetIndexFromSmashOrder(FindSlotDragIndex(currentActiveDrag));
+    //        if (smashOrder[currentHoverSlotIndex] != -1 && cad_slotIndex != -1)
+    //        {
+    //            int temp = smashOrder[currentHoverSlotIndex];
+    //            smashOrder[currentHoverSlotIndex] = FindSlotDragIndex(currentActiveDrag);
+    //            smashOrder[cad_slotIndex] = temp;
+    //        } else
+    //        {
+    //            smashOrder[currentHoverSlotIndex] = FindSlotDragIndex(currentActiveDrag);
+    //        }
+
+    //        bool flag = false;
+    //        for(int i = 0; i < smashOrder.Count; i++)
+    //        {
+    //            if (smashOrder[i] == -1)
+    //            {
+    //                flag = true;
+    //                break;
+    //            }
+    //        }
+
+    //        if(!flag)
+    //        {
+    //            pb_button.enabled = true;
+    //            pb_image.sprite = pb_activeSprite;
+    //        }
+    //    }
+    //    currentActiveDrag = null;
+    //}
 
     public void PointerUp(Transform obj_trans)
     {
-        if(currentHoverSlotIndex != -1)
+        if (currentActiveDrag == null)
+            return;
+        //SoundManager.instance.PlaySound(SoundManager.instance.hoverSound);
+        if (currentHoverSlotIndex >= 0 &&
+            currentHoverSlotIndex < smashOrder.Count)
         {
-            int cad_slotIndex = GetIndexFromSmashOrder(FindSlotDragIndex(currentActiveDrag));
-            if (smashOrder[currentHoverSlotIndex] != -1 && cad_slotIndex != -1)
+            int dragIndex = FindSlotDragIndex(currentActiveDrag);
+
+            if (dragIndex >= 0)
             {
-                int temp = smashOrder[currentHoverSlotIndex];
-                smashOrder[currentHoverSlotIndex] = FindSlotDragIndex(currentActiveDrag);
-                smashOrder[cad_slotIndex] = temp;
-            } else
-            {
-                smashOrder[currentHoverSlotIndex] = FindSlotDragIndex(currentActiveDrag);
+                // Where was this drag button already placed?
+                int oldSlotIndex = GetIndexFromSmashOrder(dragIndex);
+
+                // What is currently inside the destination slot?
+                int targetSlotValue = smashOrder[currentHoverSlotIndex];
+
+                // ----------------------------------------
+                // Dragging from one existing slot to another
+                // ----------------------------------------
+                if (oldSlotIndex != -1)
+                {
+                    // Target already occupied -> swap
+                    if (targetSlotValue != -1)
+                    {
+                        smashOrder[oldSlotIndex] = targetSlotValue;
+                        smashOrder[currentHoverSlotIndex] = dragIndex;
+                    }
+                    // Target empty -> move
+                    else
+                    {
+                        // Clear old slot
+                        smashOrder[oldSlotIndex] = -1;
+
+                        // Put into new slot
+                        smashOrder[currentHoverSlotIndex] = dragIndex;
+                    }
+                }
+
+                // ----------------------------------------
+                // Dragging an unplaced button
+                // ----------------------------------------
+                else
+                {
+                    // If destination was occupied,
+                    // the old item automatically becomes unplaced
+                    smashOrder[currentHoverSlotIndex] = dragIndex;
+                }
             }
 
-            bool flag = false;
-            for(int i = 0; i < smashOrder.Count; i++)
+            // Remove hover sprite
+            slots[currentHoverSlotIndex]
+                .GetComponent<Image>()
+                .sprite = emptySlotSprite;
+
+            // Check if every slot has something
+            bool hasEmptySlot = false;
+
+            for (int i = 0; i < smashOrder.Count; i++)
             {
                 if (smashOrder[i] == -1)
                 {
-                    flag = true;
+                    hasEmptySlot = true;
                     break;
                 }
             }
 
-            if(!flag)
-            {
-                pb_button.enabled = true;
-                pb_image.sprite = pb_activeSprite;
-            }
+            pb_button.enabled = !hasEmptySlot;
+            pb_image.sprite =
+                hasEmptySlot
+                ? pb_inactiveSprite
+                : pb_activeSprite;
         }
+
         currentActiveDrag = null;
+        currentHoverSlotIndex = -1;
     }
 
     private int FindSlotDragIndex(Transform dragTrans)
@@ -206,7 +379,8 @@ public class UIManager : MonoBehaviour
 
     public void ResetButtonClicked()
     {
-        for(int i = 0; i < smashOrder.Count; i++)
+        //SoundManager.instance.PlaySound(SoundManager.instance.clickSound);
+        for (int i = 0; i < smashOrder.Count; i++)
         {
             smashOrder[i] = -1;
         }
@@ -228,8 +402,10 @@ public class UIManager : MonoBehaviour
     public void PlayButtonClicked()
     {
         bottomPanel.GetComponent<Animator>().SetBool("canSlideDown", true);
-        GameManager.instance.activeSmashOrder = smashOrder;
-        StartCoroutine(DisableBottomPanel());   
+        GameManager.instance.activeSmashOrder = new List<int>(smashOrder);
+        StartCoroutine(DisableBottomPanel());
+
+        //SoundManager.instance.PlaySound(SoundManager.instance.clickSound);
     }
 
     IEnumerator DisableBottomPanel()

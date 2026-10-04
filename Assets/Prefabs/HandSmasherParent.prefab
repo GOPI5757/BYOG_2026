@@ -448,7 +448,10 @@ MonoBehaviour:
   handSmashLerpTime: 0.5
   handBackLerpTime: 2
   handWaitLerpTime: 1
-  handReturnLerpTime: 1.5
+  handReturnLerpTime: 10
+  handBackSpeed: 0.5
+  handSmashSpeed: 25
+  handReturnSpeed: 15
   outerFrame: {fileID: 0}
   handRodMaxScale: 27
   handRodBackScale: 0.5
