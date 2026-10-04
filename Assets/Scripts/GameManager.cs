@@ -24,7 +24,6 @@ public struct chessLevelData
     public GameObject chessBoard;
     public ChessPieceType[] typeOrder;
     public int totalMoves;
-    public float pieceChangeTimeInterval;
     public ChessGridName ChessGridName;
 }
 
@@ -73,6 +72,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float pawnMoveDelay;
     [SerializeField] private float prepareNextRoundDelay;
     [SerializeField] private float levelCloseDelay;
+    [SerializeField] private float outerFrameDownDelay;
 
     [SerializeField] private GameObject PlaceWallPrefab;
     [SerializeField] private float placeWall_LerpTime;
@@ -99,6 +99,19 @@ public class GameManager : MonoBehaviour
 
     private List<string> possibleMovesList = new List<string>();
     private List<string> takedownMovesList = new List<string>();
+
+    [Header("Level Transition")]
+
+    [SerializeField] private float transitionLerpTime;
+    [SerializeField] private float transitionLevelDelay;
+    [SerializeField] private float jumpHeight;
+
+    private float transitionElapsedTime;
+    private GameObject NextLevelStartingBlock;
+
+    private Vector3 transitionInitialPos;
+    private Vector3 transitionTargetPos;
+
 
     [Header("Camera Angles")]
 
@@ -129,6 +142,7 @@ public class GameManager : MonoBehaviour
     private PlayerInputs inputActions;
 
     private chessLevelData activeLevelData;
+    private int activeLevelDataIndex;
     private List<PieceMap> currentPieceMap = new List<PieceMap>();
 
     private float pieceChangeElapsedTime;
@@ -184,6 +198,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(gameStartDelay);
         ChessBoardSpawner chessBoardSpawner = activeLevelData.chessBoard.GetComponent<ChessBoardSpawner>();
         chessBoardSpawner.GetOuterFrameObject().transform.GetComponent<OuterFrame>().SetCanActivateFrameMove(true);
+        chessBoardSpawner.GetOuterFrameObject().transform.GetComponent<OuterFrame>().EnableMainLight(true);
     }
 
     private void SetWallBlockValues()
@@ -218,6 +233,7 @@ public class GameManager : MonoBehaviour
         camAngleText.SetText((currentCamAngleIndex + 1).ToString());
 
         activeLevelData = levelDatas[0];
+        activeLevelDataIndex = 0;
         currentGridName = activeLevelData.ChessGridName;
 
         SetBlockOccupied(GetStringFromChessGridName(currentGridName), true);
@@ -374,6 +390,7 @@ public class GameManager : MonoBehaviour
         //HandleChessPieceChanging();
         ScaleChessPiece();
         RemoveWallAfterMove();
+        TransitionLevel();
     }
 
     void HandleInputs()
@@ -712,28 +729,6 @@ public class GameManager : MonoBehaviour
         camElapsedTime += Time.deltaTime;
     }
 
-    private void HandleChessPieceChanging()
-    {
-        if (gameState != GameState.Playing) return;
-        pieceChangeElapsedTime += Time.deltaTime;
-
-        float textValue = Mathf.Clamp(activeLevelData.pieceChangeTimeInterval - pieceChangeElapsedTime, 
-            0f, activeLevelData.pieceChangeTimeInterval);
-
-        //pieceActiveTimeText.SetText(textValue.ToString("F1"));
-
-        if (pieceChangeElapsedTime >= activeLevelData.pieceChangeTimeInterval)
-        {
-            SetGameState(GameState.PlayerScalingDown);
-            currentHoverBS = null;
-            prevHoverBS = null;
-
-            ResetChessBlocks();
-
-            pieceChangeElapsedTime = 0f;
-        }
-    }
-
     void ScaleChessPiece()
     {
         if (gameState != GameState.PlayerScalingUp  && gameState != GameState.PlayerScalingDown) return;
@@ -1024,10 +1019,79 @@ public class GameManager : MonoBehaviour
                 OuterFrame outerFrame = cb_spawner.GetOuterFrameObject().GetComponent<OuterFrame>();
                 if (outerFrame)
                 {
+                    SetCameraAngle();
                     outerFrame.PrepareSmashSet(activeSmashOrder[currentSmashOrderIndex], false);
+                    StartCoroutine(MoveOuterFrameDown(outerFrame));
                 }
             }
         }
+    }
+
+    private void TransitionLevel()
+    {
+        if(gameState == GameState.TransitioningToNextLevel)
+        {
+            float t = Mathf.Clamp01(transitionElapsedTime / transitionLerpTime);
+            Vector3 position = Vector3.Lerp(transitionInitialPos, transitionTargetPos, t);
+            float height = 4f * jumpHeight * t * (1f - t);
+
+            position.y = 1f + height;
+
+            Player.transform.position = position;
+
+            transitionElapsedTime += Time.deltaTime;
+
+            if(t >= 1)
+            {
+                activeLevelData.chessBoard.GetComponent<ChessBoardSpawner>().GetOuterFrameObject().
+                    GetComponent<OuterFrame>().EnableMainLight(false);
+
+                activeLevelDataIndex++;
+                activeLevelData = levelDatas[activeLevelDataIndex];
+
+                Transform camAngleParentTrans = RetrieveCamAnglesTransformFromChessBoard();
+                foreach (Transform ca_trans in BoardcamAngles)
+                {
+                    ca_trans.transform.parent = camAngleParentTrans;
+                }
+                SetGameState(GameState.PreparingArena);
+                StartCoroutine(StartGame());
+            }
+        }
+    }
+
+    IEnumerator MoveOuterFrameDown(OuterFrame frame)
+    {
+        yield return new WaitForSeconds(outerFrameDownDelay);
+        frame.SetLevelBool();
+
+        if(IsNextLevelExist())
+        {
+            string name = GetStringFromChessGridName(levelDatas[activeLevelDataIndex + 1].ChessGridName);
+
+            NextLevelStartingBlock = levelDatas[activeLevelDataIndex + 1].chessBoard.
+                GetComponent<ChessBoardSpawner>().RetrieveGameObjectOfName(name);
+
+            //print(levelDatas[activeLevelDataIndex + 1].chessBoard.GetComponent<ChessBoardSpawner>());
+            //print(levelDatas[activeLevelDataIndex + 1].chessBoard.GetComponent<ChessBoardSpawner>().GetOuterFrameObject());
+            //print(levelDatas[activeLevelDataIndex + 1].chessBoard.
+            //    GetComponent<ChessBoardSpawner>().GetOuterFrameObject().GetComponent<OuterFrame>());
+
+            levelDatas[activeLevelDataIndex + 1].chessBoard.
+                GetComponent<ChessBoardSpawner>().GetOuterFrameObject().GetComponent<OuterFrame>().
+                    EnableMainLight(true);
+
+            transitionInitialPos = Player.transform.position;
+            transitionTargetPos = NextLevelStartingBlock.transform.position;
+
+            StartCoroutine(SetToTransitionLevel());
+        }
+    }
+
+    IEnumerator SetToTransitionLevel()
+    {
+        yield return new WaitForSeconds(transitionLevelDelay);
+        SetGameState(GameState.TransitioningToNextLevel);
     }
 
     public void SetGameState(GameState state) { 
@@ -1138,4 +1202,9 @@ public class GameManager : MonoBehaviour
     }
 
     public GameState GetGameState() { return gameState; }
+
+    public bool IsNextLevelExist()
+    {
+        return (activeLevelDataIndex + 1) < levelDatas.Length;
+    }
 }

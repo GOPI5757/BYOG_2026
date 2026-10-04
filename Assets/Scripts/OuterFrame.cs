@@ -8,6 +8,8 @@ public class OuterFrame : MonoBehaviour
     [SerializeField] private float frameMoveLerpTime;
     [SerializeField] private GameObject[] smashSets;
 
+    [SerializeField] private GameObject MainLight;
+
     public ChessBoardSpawner chessBoardSpawner;
 
     private bool canActivateFrameMove;
@@ -28,7 +30,7 @@ public class OuterFrame : MonoBehaviour
 
     void Update()
     {
-        if (GameManager.instance.GetGameState() != GameState.PreparingArena) return;
+        if (GameManager.instance.GetGameState() != GameState.PreparingArena && !bLevelClose) return;
         if(canActivateFrameMove)
         {
             float t = frameMoveElapsedTime / frameMoveLerpTime;
@@ -41,19 +43,26 @@ public class OuterFrame : MonoBehaviour
 
             if(t >= 1)
             {
-                GameManager.instance.SetGameState(GameState.ChoosingStrategy);
+                if(GameManager.instance.GetGameState() == GameState.PreparingArena)
+                {
+                    GameManager.instance.SetGameState(GameState.ChoosingStrategy);
+                } else
+                {
+                    FrameMoveArea.SetActive(false);
+                }
             }
         }
     }
 
     public void SetLevelBool()
     {
-        bLevelClose = true;
         frameMoveElapsedTime = 0f;
+        bLevelClose = true;
     }
 
     public void SetCanActivateFrameMove(bool value)
     {
+        FrameMoveArea.SetActive(true);
         canActivateFrameMove = true;
     }
 
@@ -79,5 +88,10 @@ public class OuterFrame : MonoBehaviour
                 handSmasher.SetCanSmashHand(true);
             }
         }
+    }
+
+    public void EnableMainLight(bool enabled)
+    {
+        MainLight.SetActive(enabled);
     }
 }

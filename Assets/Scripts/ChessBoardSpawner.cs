@@ -129,6 +129,11 @@ public class ChessBoardSpawner : MonoBehaviour
 
     public void UpdateHasHitToPawn(GameObject pawn)
     {
+        if(KingGridMap.Pawn == pawn)
+        {
+            KingGridMap.bHasHit = true;
+            return;
+        }
         for(int i = 0; i < PawnGridMap.Length; i++)
         {
             if (PawnGridMap[i].Pawn == pawn)
